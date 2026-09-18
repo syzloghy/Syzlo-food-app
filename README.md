@@ -33,3 +33,4 @@ For Hostinger Web Apps / Node.js hosting, use:
 - Node.js: 20.x or 22.x
 
 For a traditional static deployment, upload the contents of `dist/` to the site's public web root after building. The included `.htaccess` and `_redirects` files provide SPA fallback support for hosts that use them.
+Supabase backend integration enabled.

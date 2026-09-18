@@ -213,6 +213,20 @@ categories (
         console.warn('Supabase menu_items is empty. Keeping demo menu.');
         return;
       }
+      const { data: addonRelations, error: addonError } = await supabase
+  .from('menu_item_addons')
+  .select(`
+    menu_item_id,
+    addons (
+      id,
+      name,
+      price
+    )
+  `);
+
+if (addonError) {
+  console.error('Failed to load menu add-ons from Supabase:', addonError);
+}
 const categoryOrder: Record<string, number> = {
   BAO: 1,
   COMBOS: 2,
@@ -257,7 +271,8 @@ data.sort((a: any, b: any) => {
           isVeg: Boolean(item.is_veg),
           isBestseller: Boolean(item.is_featured),
           image: item.image_url || '',
-         addOns: (item.menu_item_addons || [])
+        addOns: (addonRelations || [])
+  .filter((relation: any) => relation.menu_item_id === item.id)
   .map((relation: any) => relation.addons)
   .filter(Boolean)
   .map((addon: any) => ({

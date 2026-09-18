@@ -208,10 +208,8 @@ menu_item_addons (
     name,
     price
   )
-)
-    
-        .eq('is_available', true)
-        
+`)
+.eq('is_available', true)
 
       if (error) {
         console.error('Failed to load menu from Supabase:', error);

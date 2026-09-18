@@ -259,7 +259,14 @@ data.sort((a: any, b: any) => {
           isVeg: Boolean(item.is_veg),
           isBestseller: Boolean(item.is_featured),
           image: item.image_url || '',
-          addOns: [],
+         addOns: (item.menu_item_addons || [])
+  .map((relation: any) => relation.addons)
+  .filter(Boolean)
+  .map((addon: any) => ({
+    id: addon.id,
+    name: addon.name,
+    price: Number(addon.price) || 0,
+  })),
           isAvailable: Boolean(item.is_available),
         };
       });

@@ -1,0 +1,722 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import {
+  CartItem,
+  Coupon,
+  CustomerOrder,
+  CustomerProfile,
+  DeliveryAddress,
+  FoodCategory,
+  MenuItem,
+  OrderStatus,
+  OrderType,
+  Rider,
+  StaffMember,
+  HeroBanner,
+  CategoryConfig,
+  GlobalAddon,
+  PaymentGatewayConfig,
+  AppBrandConfig,
+  OsmMapConfig,
+} from '../types';
+import {
+  INITIAL_COUPONS,
+  INITIAL_CUSTOMER_PROFILE,
+  INITIAL_MENU_ITEMS,
+  INITIAL_ORDERS,
+  INITIAL_RIDERS,
+  INITIAL_STAFF,
+  INITIAL_HERO_BANNERS,
+  INITIAL_CATEGORIES_CONFIG,
+  INITIAL_GLOBAL_ADDONS,
+  INITIAL_PAYMENT_GATEWAYS,
+  INITIAL_BRAND_CONFIG,
+  INITIAL_OSM_CONFIG,
+  RESTAURANT_LOCATION,
+} from '../data/mockData';
+import { orderService } from '../services/orderService';
+import { soundService } from '../services/soundService';
+
+export type AppView = 'customer' | 'admin' | 'kds' | 'pos' | 'rider';
+export type CustomerScreen = 'home' | 'menu' | 'cart' | 'checkout' | 'tracking' | 'orders' | 'profile' | 'offers';
+export type AdminScreen =
+  | 'dashboard'
+  | 'orders'
+  | 'kitchen'
+  | 'pos'
+  | 'menu'
+  | 'categories'
+  | 'banners'
+  | 'addons'
+  | 'coupons'
+  | 'gateways'
+  | 'map-osm'
+  | 'brand'
+  | 'customers'
+  | 'riders'
+  | 'staff'
+  | 'reports';
+
+interface AppContextType {
+  // Navigation & Views
+  currentView: AppView;
+  setCurrentView: (view: AppView) => void;
+  customerScreen: CustomerScreen;
+  setCustomerScreen: (screen: CustomerScreen) => void;
+  adminScreen: AdminScreen;
+  setAdminScreen: (screen: AdminScreen) => void;
+
+  // Selected Order for Tracking or Inspection
+  activeTrackingOrderId: string | null;
+  setActiveTrackingOrderId: (orderId: string | null) => void;
+
+  // Customer Filtering & Order Flow
+  selectedCategory: FoodCategory;
+  setSelectedCategory: (cat: FoodCategory) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  orderType: OrderType;
+  setOrderType: (type: OrderType) => void;
+
+  // Cart & Modifiers
+  cart: CartItem[];
+  addToCart: (item: MenuItem, quantity: number, addOns?: { id: string; name: string; price: number }[], instructions?: string) => void;
+  updateCartQuantity: (cartItemId: string, newQty: number) => void;
+  removeFromCart: (cartItemId: string) => void;
+  clearCart: () => void;
+  appliedCoupon: Coupon | null;
+  applyCouponCode: (code: string, activeOrderType?: OrderType) => { success: boolean; message: string };
+  removeCoupon: () => void;
+
+  // Customization Bottom Sheet Modal
+  customizingItem: MenuItem | null;
+  setCustomizingItem: (item: MenuItem | null) => void;
+
+  // Core Data Collections
+  menuItems: MenuItem[];
+  orders: CustomerOrder[];
+  riders: Rider[];
+  coupons: Coupon[];
+  staff: StaffMember[];
+  customerProfile: CustomerProfile;
+  updateCustomerProfile: (updates: Partial<CustomerProfile>) => void;
+  addCustomerAddress: (address: DeliveryAddress) => void;
+  updateCustomerAddress: (id: string, updates: Partial<DeliveryAddress>) => void;
+  deleteCustomerAddress: (id: string) => void;
+
+  // Demo staff access gate. Not production authentication.
+  isStaffAuthenticated: boolean;
+  setIsStaffAuthenticated: (auth: boolean) => void;
+  verifyStaffPin: (phone: string, pin: string) => boolean;
+
+  // Dynamic Content & Settings
+  heroBanners: HeroBanner[];
+  addHeroBanner: (banner: Omit<HeroBanner, 'id'>) => void;
+  updateHeroBanner: (id: string, updates: Partial<HeroBanner>) => void;
+  deleteHeroBanner: (id: string) => void;
+  toggleHeroBannerStatus: (id: string) => void;
+
+  categoriesConfig: CategoryConfig[];
+  updateCategoryConfig: (id: string, updates: Partial<CategoryConfig>) => void;
+
+  globalAddons: GlobalAddon[];
+  addGlobalAddon: (addon: Omit<GlobalAddon, 'id'>) => void;
+  updateGlobalAddon: (id: string, updates: Partial<GlobalAddon>) => void;
+  deleteGlobalAddon: (id: string) => void;
+  toggleAddonAvailability: (id: string) => void;
+
+  paymentGateways: PaymentGatewayConfig[];
+  updatePaymentGateway: (id: string, updates: Partial<PaymentGatewayConfig>) => void;
+  togglePaymentGateway: (id: string) => void;
+
+  brandConfig: AppBrandConfig;
+  updateBrandConfig: (updates: Partial<AppBrandConfig>) => void;
+
+  osmConfig: OsmMapConfig;
+  updateOsmConfig: (updates: Partial<OsmMapConfig>) => void;
+
+  // Order Operations
+  placeCustomerOrder: (orderPayload: Partial<CustomerOrder>) => CustomerOrder;
+  updateOrderStatus: (orderId: string, status: OrderStatus, note?: string) => void;
+  assignRider: (orderId: string, riderId: string) => void;
+  assignRiderToOrder: (orderId: string, riderId: string) => void;
+  cancelOrder: (orderId: string, reason?: string) => void;
+
+  // Rider Operations
+  activeRiderId: string;
+  setActiveRiderId: (id: string) => void;
+  updateRiderLocation: (riderId: string, coords: { lat: number; lng: number }) => void;
+  toggleRiderStatus: (riderId: string, status: 'ONLINE' | 'OFFLINE' | 'BUSY') => void;
+
+  // Menu Operations
+  addMenuItem: (item: Omit<MenuItem, 'id'>) => void;
+  updateMenuItem: (id: string, updates: Partial<MenuItem>) => void;
+  toggleItemAvailability: (id: string) => void;
+  deleteMenuItem: (id: string) => void;
+
+  // Coupon Operations
+  addCoupon: (coupon: Coupon) => void;
+  deleteCoupon: (code: string) => void;
+  toggleCouponStatus: (code: string) => void;
+
+  // Audio / KDS Controls
+  isAudioMuted: boolean;
+  toggleAudioMute: () => void;
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Navigation
+  const [currentView, setCurrentView] = useState<AppView>('customer');
+  const [customerScreen, setCustomerScreen] = useState<CustomerScreen>('home');
+  const [adminScreen, setAdminScreen] = useState<AdminScreen>('dashboard');
+
+  // Active tracking
+  const [activeTrackingOrderId, setActiveTrackingOrderId] = useState<string | null>('SYZ/09/18/02');
+
+  // Customer filters
+  const [selectedCategory, setSelectedCategory] = useState<FoodCategory>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [orderType, setOrderType] = useState<OrderType>('DELIVERY');
+
+  // Customizing Bottom Sheet modal
+  const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
+
+  // Entities
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
+  const [orders, setOrders] = useState<CustomerOrder[]>(INITIAL_ORDERS);
+  const [riders, setRiders] = useState<Rider[]>(INITIAL_RIDERS);
+  const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);
+  const [staff] = useState<StaffMember[]>(INITIAL_STAFF);
+  const [customerProfile, setCustomerProfile] = useState<CustomerProfile>(INITIAL_CUSTOMER_PROFILE);
+
+  // Demo staff portal gate. IMPORTANT: frontend credentials are not secure authentication.
+  const [isStaffAuthenticated, setIsStaffAuthenticated] = useState<boolean>(false);
+
+  const verifyStaffPin = (phone: string, pin: string): boolean => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const configuredPhone = (import.meta.env.VITE_DEMO_ADMIN_PHONE || '').replace(/\D/g, '');
+    const configuredPin = String(import.meta.env.VITE_DEMO_ADMIN_PIN || '');
+    const isPhoneMatch = Boolean(configuredPhone) && cleanPhone === configuredPhone;
+    const isPinMatch = Boolean(configuredPin) && pin.trim() === configuredPin;
+
+    if (isPhoneMatch && isPinMatch) {
+      setIsStaffAuthenticated(true);
+      return true;
+    }
+    return false;
+  };
+
+  const updateCustomerProfile = (updates: Partial<CustomerProfile>) => {
+    setCustomerProfile((prev) => ({ ...prev, ...updates }));
+  };
+
+  const addCustomerAddress = (address: DeliveryAddress) => {
+    const newId = address.id || `addr-${Date.now()}`;
+    setCustomerProfile((prev) => ({
+      ...prev,
+      addresses: [{ ...address, id: newId }, ...prev.addresses],
+    }));
+  };
+
+  const updateCustomerAddress = (id: string, updates: Partial<DeliveryAddress>) => {
+    setCustomerProfile((prev) => ({
+      ...prev,
+      addresses: prev.addresses.map((addr) => (addr.id === id ? { ...addr, ...updates } : addr)),
+    }));
+  };
+
+  const deleteCustomerAddress = (id: string) => {
+    setCustomerProfile((prev) => ({
+      ...prev,
+      addresses: prev.addresses.filter((addr) => addr.id !== id),
+    }));
+  };
+
+  // Dynamic configurations
+  const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(INITIAL_HERO_BANNERS);
+  const [categoriesConfig, setCategoriesConfig] = useState<CategoryConfig[]>(INITIAL_CATEGORIES_CONFIG);
+  const [globalAddons, setGlobalAddons] = useState<GlobalAddon[]>(INITIAL_GLOBAL_ADDONS);
+  const [paymentGateways, setPaymentGateways] = useState<PaymentGatewayConfig[]>(INITIAL_PAYMENT_GATEWAYS);
+  const [brandConfig, setBrandConfig] = useState<AppBrandConfig>(INITIAL_BRAND_CONFIG);
+  const [osmConfig, setOsmConfig] = useState<OsmMapConfig>(INITIAL_OSM_CONFIG);
+
+  // Active rider profile for the Rider App view
+  const [activeRiderId, setActiveRiderId] = useState<string>('RDR-01');
+
+  // Cart
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+
+  // Sound
+  const [isAudioMuted, setIsAudioMuted] = useState<boolean>(false);
+
+  // Continuous alert for KDS when there are pending NEW orders
+  useEffect(() => {
+    const hasUnacceptedOrders = orders.some((o) => o.status === 'ORDER_PLACED');
+    if (hasUnacceptedOrders && currentView === 'kds' && !isAudioMuted) {
+      soundService.startContinuousAlert();
+    } else {
+      soundService.stopContinuousAlert();
+    }
+  }, [orders, currentView, isAudioMuted]);
+
+  const toggleAudioMute = () => {
+    const nextState = !isAudioMuted;
+    setIsAudioMuted(nextState);
+    soundService.setMuted(nextState);
+  };
+
+  // Cart actions
+  const addToCart = (
+    item: MenuItem,
+    quantity: number,
+    addOns: { id: string; name: string; price: number }[] = [],
+    instructions?: string
+  ) => {
+    soundService.playChime('pop');
+    setCart((prev) => {
+      const addOnsTotal = addOns.reduce((sum, a) => sum + a.price, 0);
+      const unitPrice = item.price + addOnsTotal;
+
+      // Unique hash for items with same addOns & instructions
+      const addOnKey = addOns.map((a) => a.id).sort().join('-');
+      const matchIndex = prev.findIndex(
+        (ci) =>
+          ci.menuItem.id === item.id &&
+          ci.specialInstructions === (instructions || '') &&
+          ci.selectedAddOns.map((a) => a.id).sort().join('-') === addOnKey
+      );
+
+      if (matchIndex >= 0) {
+        const updated = [...prev];
+        const newQty = updated[matchIndex].quantity + quantity;
+        updated[matchIndex] = {
+          ...updated[matchIndex],
+          quantity: newQty,
+          totalPrice: newQty * unitPrice,
+        };
+        return updated;
+      } else {
+        const newItem: CartItem = {
+          cartItemId: `ci-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+          menuItem: item,
+          quantity,
+          selectedAddOns: addOns,
+          specialInstructions: instructions,
+          unitPrice,
+          totalPrice: unitPrice * quantity,
+        };
+        return [...prev, newItem];
+      }
+    });
+  };
+
+  const updateCartQuantity = (cartItemId: string, newQty: number) => {
+    if (newQty <= 0) {
+      removeFromCart(cartItemId);
+      return;
+    }
+    setCart((prev) =>
+      prev.map((ci) => {
+        if (ci.cartItemId === cartItemId) {
+          return {
+            ...ci,
+            quantity: newQty,
+            totalPrice: ci.unitPrice * newQty,
+          };
+        }
+        return ci;
+      })
+    );
+  };
+
+  const removeFromCart = (cartItemId: string) => {
+    setCart((prev) => prev.filter((ci) => ci.cartItemId !== cartItemId));
+  };
+
+  const clearCart = () => {
+    setCart([]);
+    setAppliedCoupon(null);
+  };
+
+  const applyCouponCode = (code: string, activeOrderType?: OrderType): { success: boolean; message: string } => {
+    const trimmed = code.trim().toUpperCase();
+    const found = coupons.find((c) => c.code === trimmed);
+
+    if (!found || (!found.active && found.isActive === false)) {
+      return { success: false, message: 'Invalid or inactive coupon code' };
+    }
+
+    const currentMode = activeOrderType || orderType;
+    if (found.applicableMode && found.applicableMode !== 'ALL' && found.applicableMode !== currentMode) {
+      return {
+        success: false,
+        message: `Coupon "${found.code}" is valid only for ${found.applicableMode} orders. (Current mode is ${currentMode})`,
+      };
+    }
+
+    const currentTotal = cart.reduce((sum, item) => sum + item.totalPrice, 0);
+    if (currentTotal < found.minOrder) {
+      return {
+        success: false,
+        message: `Add items worth ₹${found.minOrder - currentTotal} more to apply ${found.code}`,
+      };
+    }
+
+    setAppliedCoupon(found);
+    soundService.playChime('success');
+    return { success: true, message: `${found.code} applied successfully!` };
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+  };
+
+  // Content & Settings handlers
+  const addHeroBanner = (banner: Omit<HeroBanner, 'id'>) => {
+    const id = `hero-${Date.now()}`;
+    setHeroBanners((prev) => [{ ...banner, id }, ...prev]);
+  };
+
+  const updateHeroBanner = (id: string, updates: Partial<HeroBanner>) => {
+    setHeroBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+  };
+
+  const deleteHeroBanner = (id: string) => {
+    setHeroBanners((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const toggleHeroBannerStatus = (id: string) => {
+    setHeroBanners((prev) => prev.map((b) => (b.id === id ? { ...b, isActive: !b.isActive } : b)));
+  };
+
+  const updateCategoryConfig = (id: string, updates: Partial<CategoryConfig>) => {
+    setCategoriesConfig((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
+  };
+
+  const addGlobalAddon = (addon: Omit<GlobalAddon, 'id'>) => {
+    const id = `ga-${Date.now()}`;
+    setGlobalAddons((prev) => [...prev, { ...addon, id }]);
+  };
+
+  const updateGlobalAddon = (id: string, updates: Partial<GlobalAddon>) => {
+    setGlobalAddons((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)));
+  };
+
+  const deleteGlobalAddon = (id: string) => {
+    setGlobalAddons((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const toggleAddonAvailability = (id: string) => {
+    setGlobalAddons((prev) => prev.map((a) => (a.id === id ? { ...a, isAvailable: !a.isAvailable } : a)));
+  };
+
+  const updatePaymentGateway = (id: string, updates: Partial<PaymentGatewayConfig>) => {
+    setPaymentGateways((prev) => prev.map((g) => (g.id === id ? { ...g, ...updates } : g)));
+  };
+
+  const togglePaymentGateway = (id: string) => {
+    setPaymentGateways((prev) => prev.map((g) => (g.id === id ? { ...g, isEnabled: !g.isEnabled } : g)));
+  };
+
+  const updateBrandConfig = (updates: Partial<AppBrandConfig>) => {
+    setBrandConfig((prev) => ({ ...prev, ...updates }));
+  };
+
+  const updateOsmConfig = (updates: Partial<OsmMapConfig>) => {
+    setOsmConfig((prev) => ({ ...prev, ...updates }));
+  };
+
+  // Order Placement
+  const placeCustomerOrder = (orderPayload: Partial<CustomerOrder>): CustomerOrder => {
+    const isPOS = orderPayload.source === 'POS';
+    const orderId = orderPayload.id || orderService.generateOrderId(isPOS);
+    const orderItems = orderPayload.items && orderPayload.items.length > 0 ? orderPayload.items : cart;
+
+    const breakdown = orderService.calculateOrderBreakdown(
+      orderItems,
+      orderPayload.orderType || orderType,
+      appliedCoupon,
+      orderPayload.deliveryFee ?? 40,
+      brandConfig
+    );
+
+    const now = new Date();
+    const timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const newOrder: CustomerOrder = {
+      id: orderId,
+      source: orderPayload.source || 'ONLINE',
+      orderType: orderPayload.orderType || orderType,
+      items: orderItems,
+      itemTotal: breakdown.itemTotal,
+      discount: breakdown.discount,
+      deliveryFee: breakdown.deliveryFee,
+      packagingFee: breakdown.packagingFee,
+      tax: breakdown.tax,
+      grandTotal: breakdown.grandTotal,
+      couponCode: appliedCoupon?.code,
+      paymentMethod: orderPayload.paymentMethod || 'UPI',
+      paymentStatus: 'PAID',
+      status: 'ORDER_PLACED',
+      createdAt: now.toISOString(),
+      customerName: orderPayload.customerName || customerProfile.name,
+      customerPhone: orderPayload.customerPhone || customerProfile.phone,
+      deliveryAddress: orderPayload.deliveryAddress,
+      dineInTable: orderPayload.dineInTable,
+      specialInstructions: orderPayload.specialInstructions,
+      estimatedMinutes: orderPayload.orderType === 'DELIVERY' ? 30 : 15,
+      logs: [
+        {
+          status: 'ORDER_PLACED',
+          timestamp: timeFormatted,
+          note: `Order placed via ${orderPayload.source || 'ONLINE'} (${orderPayload.paymentMethod || 'UPI'})`,
+        },
+      ],
+    };
+
+    setOrders((prev) => [newOrder, ...prev]);
+    soundService.playChime('success');
+
+    if (!isPOS) {
+      clearCart();
+      setActiveTrackingOrderId(orderId);
+      setCustomerScreen('tracking');
+    }
+
+    return newOrder;
+  };
+
+  const updateOrderStatus = (orderId: string, status: OrderStatus, note?: string) => {
+    const now = new Date();
+    const timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    setOrders((prev) =>
+      prev.map((ord) => {
+        if (ord.id === orderId) {
+          const updatedLogs = [
+            ...ord.logs,
+            { status, timestamp: timeFormatted, note: note || `Status updated to ${status}` },
+          ];
+
+          return {
+            ...ord,
+            status,
+            logs: updatedLogs,
+          };
+        }
+        return ord;
+      })
+    );
+
+    soundService.playChime('pop');
+  };
+
+  const assignRider = (orderId: string, riderId: string) => {
+    const targetRider = riders.find((r) => r.id === riderId);
+    if (!targetRider) return;
+
+    setOrders((prev) =>
+      prev.map((ord) => {
+        if (ord.id === orderId) {
+          const now = new Date();
+          const timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          return {
+            ...ord,
+            status: 'RIDER_ASSIGNED',
+            riderId: targetRider.id,
+            riderName: targetRider.name,
+            riderPhone: targetRider.phone,
+            riderLocation: { ...targetRider.location },
+            logs: [
+              ...ord.logs,
+              { status: 'RIDER_ASSIGNED', timestamp: timeFormatted, note: `Assigned to rider ${targetRider.name}` },
+            ],
+          };
+        }
+        return ord;
+      })
+    );
+
+    setRiders((prev) =>
+      prev.map((r) => (r.id === riderId ? { ...r, status: 'BUSY', currentOrderId: orderId } : r))
+    );
+
+    soundService.playChime('alert');
+  };
+
+  const cancelOrder = (orderId: string, reason?: string) => {
+    const now = new Date();
+    const timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    setOrders((prev) =>
+      prev.map((ord) => {
+        if (ord.id === orderId) {
+          return {
+            ...ord,
+            status: 'CANCELLED',
+            logs: [
+              ...ord.logs,
+              { status: 'CANCELLED', timestamp: timeFormatted, note: reason || 'Order cancelled' },
+            ],
+          };
+        }
+        return ord;
+      })
+    );
+  };
+
+  // Rider updates
+  const updateRiderLocation = (riderId: string, coords: { lat: number; lng: number }) => {
+    setRiders((prev) =>
+      prev.map((r) => (r.id === riderId ? { ...r, location: coords } : r))
+    );
+
+    setOrders((prev) =>
+      prev.map((ord) => {
+        if (ord.riderId === riderId) {
+          return {
+            ...ord,
+            riderLocation: coords,
+          };
+        }
+        return ord;
+      })
+    );
+  };
+
+  const toggleRiderStatus = (riderId: string, status: 'ONLINE' | 'OFFLINE' | 'BUSY') => {
+    setRiders((prev) =>
+      prev.map((r) => (r.id === riderId ? { ...r, status } : r))
+    );
+  };
+
+  // Menu updates
+  const addMenuItem = (item: Omit<MenuItem, 'id'>) => {
+    const newId = `item-${Date.now()}`;
+    setMenuItems((prev) => [{ ...item, id: newId }, ...prev]);
+  };
+
+  const updateMenuItem = (id: string, updates: Partial<MenuItem>) => {
+    setMenuItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
+    );
+  };
+
+  const toggleItemAvailability = (id: string) => {
+    setMenuItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, isAvailable: !item.isAvailable } : item))
+    );
+  };
+
+  const deleteMenuItem = (id: string) => {
+    setMenuItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Coupon updates
+  const addCoupon = (coupon: Coupon) => {
+    setCoupons((prev) => [coupon, ...prev]);
+  };
+
+  const deleteCoupon = (code: string) => {
+    setCoupons((prev) => prev.filter((c) => c.code !== code));
+  };
+
+  const toggleCouponStatus = (code: string) => {
+    setCoupons((prev) =>
+      prev.map((c) => (c.code === code ? { ...c, active: !c.active, isActive: !c.active } : c))
+    );
+  };
+
+  return (
+    <AppContext.Provider
+      value={{
+        currentView,
+        setCurrentView,
+        customerScreen,
+        setCustomerScreen,
+        adminScreen,
+        setAdminScreen,
+        activeTrackingOrderId,
+        setActiveTrackingOrderId,
+        selectedCategory,
+        setSelectedCategory,
+        searchQuery,
+        setSearchQuery,
+        orderType,
+        setOrderType,
+        cart,
+        addToCart,
+        updateCartQuantity,
+        removeFromCart,
+        clearCart,
+        appliedCoupon,
+        applyCouponCode,
+        removeCoupon,
+        customizingItem,
+        setCustomizingItem,
+        menuItems,
+        orders,
+        riders,
+        coupons,
+        staff,
+        customerProfile,
+        updateCustomerProfile,
+        addCustomerAddress,
+        updateCustomerAddress,
+        deleteCustomerAddress,
+        isStaffAuthenticated,
+        setIsStaffAuthenticated,
+        verifyStaffPin,
+        heroBanners,
+        addHeroBanner,
+        updateHeroBanner,
+        deleteHeroBanner,
+        toggleHeroBannerStatus,
+        categoriesConfig,
+        updateCategoryConfig,
+        globalAddons,
+        addGlobalAddon,
+        updateGlobalAddon,
+        deleteGlobalAddon,
+        toggleAddonAvailability,
+        paymentGateways,
+        updatePaymentGateway,
+        togglePaymentGateway,
+        brandConfig,
+        updateBrandConfig,
+        osmConfig,
+        updateOsmConfig,
+        placeCustomerOrder,
+        updateOrderStatus,
+        assignRider,
+        assignRiderToOrder: assignRider,
+        cancelOrder,
+        activeRiderId,
+        setActiveRiderId,
+        updateRiderLocation,
+        toggleRiderStatus,
+        addMenuItem,
+        updateMenuItem,
+        toggleItemAvailability,
+        deleteMenuItem,
+        addCoupon,
+        deleteCoupon,
+        toggleCouponStatus,
+        isAudioMuted,
+        toggleAudioMute,
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+};
+
+export const useApp = () => {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
+  }
+  return context;
+};

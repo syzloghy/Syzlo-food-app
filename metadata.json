@@ -1,0 +1,6 @@
+{
+  "name": "SYZLO - The Bao Makers",
+  "description": "Modern mobile-first food ordering, live tracking, and restaurant management platform for SYZLO.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

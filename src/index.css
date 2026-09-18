@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-olive-50: #f7f8f0;
+  --color-olive-100: #eef1de;
+  --color-olive-200: #dde3be;
+  --color-olive-500: #7A7B26;
+  --color-olive-600: #68691f;
+  --color-olive-700: #545519;
+  --color-olive-800: #424314;
+  --color-olive-900: #31320f;
+
+  --color-cream-50: #FCF9F3;
+  --color-cream-100: #F8F2E6;
+  --color-cream-200: #EED7B5;
+  --color-cream-300: #E4C89E;
+  --color-cream-400: #D8B583;
+
+  --color-syzlo-charcoal: #20221A;
+  --color-syzlo-dark: #171812;
+}
+
+:root {
+  --syzlo-olive: #7A7B26;
+  --syzlo-cream: #EED7B5;
+  --syzlo-cream-light: #FAF6EF;
+  --syzlo-charcoal: #20221A;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #FAF6EF;
+  color: #20221A;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F3EADB;
+}
+::-webkit-scrollbar-thumb {
+  background: #C4B9A7;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7A7B26;
+}
+
+/* Print styling for POS receipts */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-receipt, #printable-receipt * {
+    visibility: visible;
+  }
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    margin: 0;
+    padding: 10px;
+    background: white;
+    color: black;
+  }
+}
+

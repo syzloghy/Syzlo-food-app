@@ -35,7 +35,7 @@ import {
 } from '../data/mockData';
 import { orderService } from '../services/orderService';
 import { soundService } from '../services/soundService';
-
+import { supabase } from '../lib/supabase';
 export type AppView = 'customer' | 'admin' | 'kds' | 'pos' | 'rider';
 export type CustomerScreen = 'home' | 'menu' | 'cart' | 'checkout' | 'tracking' | 'orders' | 'profile' | 'offers';
 export type AdminScreen =
@@ -184,6 +184,71 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Entities
   const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
+    useEffect(() => {
+    const loadMenuFromSupabase = async () => {
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select(`
+          id,
+          name,
+          description,
+          image_url,
+          price,
+          is_veg,
+          is_available,
+          is_featured,
+          sort_order,
+          categories (
+            name,
+            slug
+          )
+        `)
+        .eq('is_available', true)
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        console.error('Failed to load menu from Supabase:', error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('Supabase menu_items is empty. Keeping demo menu.');
+        return;
+      }
+
+      const supabaseMenu: MenuItem[] = data.map((item: any) => {
+        const categorySlug = item.categories?.slug?.toUpperCase();
+
+        const category =
+          categorySlug === 'BAO' ||
+          categorySlug === 'COMBOS' ||
+          categorySlug === 'CHINESE' ||
+          categorySlug === 'STARTERS' ||
+          categorySlug === 'DRINKS'
+            ? categorySlug
+            : 'CHINESE';
+
+        return {
+          id: item.id,
+          name: item.name,
+          category,
+          description: item.description || '',
+          price: Number(item.price) || 0,
+          rating: 0,
+          reviewsCount: 0,
+          isVeg: Boolean(item.is_veg),
+          isBestseller: Boolean(item.is_featured),
+          image: item.image_url || '',
+          addOns: [],
+          isAvailable: Boolean(item.is_available),
+        };
+      });
+
+      setMenuItems(supabaseMenu);
+    };
+
+    loadMenuFromSupabase();
+  }, []);
   const [orders, setOrders] = useState<CustomerOrder[]>(INITIAL_ORDERS);
   const [riders, setRiders] = useState<Rider[]>(INITIAL_RIDERS);
   const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);

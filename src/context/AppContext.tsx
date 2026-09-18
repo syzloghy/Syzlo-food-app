@@ -209,6 +209,7 @@ menu_item_addons (
     price
   )
 )
+    
         .eq('is_available', true)
         
 

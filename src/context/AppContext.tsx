@@ -204,7 +204,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           )
         `)
         .eq('is_available', true)
-        .order('sort_order', { ascending: true });
+        
 
       if (error) {
         console.error('Failed to load menu from Supabase:', error);
@@ -215,7 +215,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.warn('Supabase menu_items is empty. Keeping demo menu.');
         return;
       }
+const categoryOrder: Record<string, number> = {
+  BAO: 1,
+  COMBOS: 2,
+  DRINKS: 3,
+  CHINESE: 4,
+  STARTERS: 5,
+};
 
+data.sort((a: any, b: any) => {
+  const categoryA =
+    categoryOrder[a.categories?.slug?.toUpperCase()] ?? 99;
+
+  const categoryB =
+    categoryOrder[b.categories?.slug?.toUpperCase()] ?? 99;
+
+  if (categoryA !== categoryB) {
+    return categoryA - categoryB;
+  }
+
+  return Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0);
+});
       const supabaseMenu: MenuItem[] = data.map((item: any) => {
         const categorySlug = item.categories?.slug?.toUpperCase();
 

@@ -199,10 +199,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           is_featured,
           sort_order,
           categories (
-            name,
-            slug
-          )
-        `)
+  name,
+  slug
+),
+menu_item_addons (
+  addons (
+    id,
+    name,
+    price
+  )
+)
         .eq('is_available', true)
         
 

@@ -188,29 +188,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const loadMenuFromSupabase = async () => {
       const { data, error } = await supabase
         .from('menu_items')
-        .select(`
-          id,
-          name,
-          description,
-          image_url,
-          price,
-          is_veg,
-          is_available,
-          is_featured,
-          sort_order,
-          categories (
+       .select(`
+  id,
+  name,
+  description,
+  image_url,
+  price,
+  is_veg,
+  is_available,
+  is_featured,
+  sort_order,
+categories (
   name,
   slug
-),
-menu_item_addons (
-  addons (
-    id,
-    name,
-    price
-  )
+)
 `)
-.eq('is_available', true)
-
+.eq('is_available', true);
       if (error) {
         console.error('Failed to load menu from Supabase:', error);
         return;

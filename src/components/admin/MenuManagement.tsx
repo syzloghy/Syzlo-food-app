@@ -176,7 +176,7 @@ export const MenuManagement: React.FC = () => {
     'Failed to save menu item.'
   );
 }
-
+};
   const handleDelete = async (item: MenuItem) => {
     const confirmed = window.confirm(
       `Are you sure you want to remove "${item.name}"?`

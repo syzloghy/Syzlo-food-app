@@ -424,7 +424,7 @@ const verifyStaffPin = async (
       image: category.image_url || '',
       isActive: Boolean(category.is_active),
     }));
-
+console.log('CATEGORY IMAGES FROM SUPABASE:', supabaseCategories);
     console.log(
       'Supabase categories loaded:',
       supabaseCategories

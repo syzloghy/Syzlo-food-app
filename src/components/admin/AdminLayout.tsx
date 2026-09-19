@@ -14,7 +14,7 @@ import { StaffRiderManagement } from './StaffRiderManagement';
 import { ReportsAnalytics } from './ReportsAnalytics';
 import {
   LayoutDashboard,
-   ArrowLeft,
+  ArrowLeft,
   ShoppingBag,
   Utensils,
   Layers,
@@ -49,7 +49,6 @@ export type AdminTabId =
 interface AdminLayoutProps {
   onBack?: () => void;
 }
-
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBack }) => {
   const { brandConfig, orders } = useApp();
   const [activeTab, setActiveTab] = useState<AdminTabId>('overview');
@@ -209,7 +208,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBack }) => {
             </button>
           </div>
         </div>
-
+{onBack && (
+  <button
+    onClick={onBack}
+    className="flex items-center gap-2 px-3 py-2 mb-3 rounded-xl bg-cream-100 hover:bg-cream-200 text-stone-700 text-sm font-bold transition-colors"
+  >
+    <ArrowLeft className="w-4 h-4" />
+    Back
+  </button>
+)}
         {/* Quick Horizontal Scroller for Most Frequent Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto bg-cream-100 p-1.5 rounded-2xl border border-cream-300 no-scrollbar">
           {[

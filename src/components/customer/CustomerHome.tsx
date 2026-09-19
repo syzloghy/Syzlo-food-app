@@ -84,7 +84,9 @@ export const CustomerHome: React.FC = () => {
   const remainingItems = filteredItems.filter((item) => !item.isBestseller);
 
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
+const getCategoryImage = (categoryId: string, fallback: string) =>
+  categoriesConfig.find((category) => category.id === categoryId)?.image || fallback;
+  
   // Breakdown with packaging charge
   const breakdown = orderService.calculateOrderBreakdown(
     cart,
@@ -239,8 +241,10 @@ export const CustomerHome: React.FC = () => {
               }`}
             >
               <img
-                src="https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=300&q=80"
-                alt="All Dishes"
+src={getCategoryImage(
+  'All',
+  'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=300&q=80'
+)}                alt="All Dishes"
                 className="w-full h-full object-cover rounded-full"
               />
             </div>
@@ -266,8 +270,10 @@ export const CustomerHome: React.FC = () => {
               }`}
             >
               <img
-                src="https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=300&q=80"
-                alt="Bao"
+src={getCategoryImage(
+  'Bao',
+  'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=300&q=80'
+)}                alt="Bao"
                 className="w-full h-full object-cover rounded-full"
               />
             </div>
@@ -293,8 +299,10 @@ export const CustomerHome: React.FC = () => {
               }`}
             >
               <img
-                src="https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=300&q=80"
-                alt="Chinese"
+src={getCategoryImage(
+  'CHINESE',
+  'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=300&q=80'
+)}                alt="Chinese"
                 className="w-full h-full object-cover rounded-full"
               />
             </div>
@@ -320,8 +328,10 @@ export const CustomerHome: React.FC = () => {
               }`}
             >
               <img
-                src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80"
-                alt="Combos"
+src={getCategoryImage(
+  'Combos',
+  'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=300&q=80'
+)}                alt="Combos"
                 className="w-full h-full object-cover rounded-full"
               />
             </div>
@@ -347,8 +357,10 @@ export const CustomerHome: React.FC = () => {
               }`}
             >
               <img
-                src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=300&q=80"
-                alt="Drinks"
+src={getCategoryImage(
+  'Drinks',
+  'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=300&q=80'
+)}                alt="Drinks"
                 className="w-full h-full object-cover rounded-full"
               />
             </div>

@@ -108,12 +108,12 @@ interface AppContextType {
   setIsStaffAuthenticated: (auth: boolean) => void;
 verifyStaffPin: (email: string, password: string) => Promise<boolean>;
   // Dynamic Content & Settings
-  heroBanners: HeroBanner[];
-  addHeroBanner: (banner: Omit<HeroBanner, 'id'>) => void;
-  updateHeroBanner: (id: string, updates: Partial<HeroBanner>) => void;
-  deleteHeroBanner: (id: string) => void;
-  toggleHeroBannerStatus: (id: string) => void;
-
+ heroBanners: HeroBanner[];
+addHeroBanner: (banner: Omit<HeroBanner, 'id'>) => Promise<void>;
+updateHeroBanner: (id: string, updates: Partial<HeroBanner>) => Promise<void>;
+deleteHeroBanner: (id: string) => Promise<void>;
+toggleHeroBannerStatus: (id: string) => Promise<void>;
+  
   categoriesConfig: CategoryConfig[];
  updateCategoryConfig: (
   id: string,
@@ -378,9 +378,67 @@ const verifyStaffPin = async (
   };
 
   // Dynamic configurations
-  const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(INITIAL_HERO_BANNERS);
-  const [categoriesConfig, setCategoriesConfig] = useState<CategoryConfig[]>(INITIAL_CATEGORIES_CONFIG);
-  useEffect(() => {
+ const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(INITIAL_HERO_BANNERS);
+const [categoriesConfig, setCategoriesConfig] = useState<CategoryConfig[]>(INITIAL_CATEGORIES_CONFIG);
+
+useEffect(() => {
+  const loadHeroBannersFromSupabase = async () => {
+    const { data, error } = await supabase
+      .from('hero_banners')
+      .select(`
+        id,
+        created_at,
+        badge,
+        title,
+        subtitle,
+        coupon_code,
+        image_url,
+        button_text,
+        button_link,
+        cta_category,
+        bg_color,
+        is_active,
+        sort_order
+      `)
+      .order('sort_order', { ascending: true })
+      .order('id', { ascending: true });
+
+    if (error) {
+      console.error('Failed to load hero banners from Supabase:', error);
+      return;
+    }
+
+    if (!data) {
+      return;
+    }
+
+    const supabaseHeroBanners: HeroBanner[] = data.map((banner: any) => ({
+      id: String(banner.id),
+      badge: banner.badge || '',
+      title: banner.title || '',
+      subtitle: banner.subtitle || '',
+      couponCode: banner.coupon_code || undefined,
+      imageUrl: banner.image_url || '',
+      ctaText: banner.button_text || 'Order Now',
+      ctaCategory: banner.cta_category || 'BAO',
+      bgColor:
+        banner.bg_color ||
+        'from-[#20221A] via-[#2D3021] to-[#393D28]',
+      isActive: Boolean(banner.is_active),
+    }));
+
+    console.log(
+      'HERO BANNERS FROM SUPABASE:',
+      supabaseHeroBanners
+    );
+
+    setHeroBanners(supabaseHeroBanners);
+  };
+
+  loadHeroBannersFromSupabase();
+}, []);
+
+useEffect(() => {
   const loadCategoriesFromSupabase = async () => {
     const { data, error } = await supabase
       .from('categories')
@@ -572,24 +630,209 @@ console.log('CATEGORY IMAGES FROM SUPABASE:', supabaseCategories);
     setAppliedCoupon(null);
   };
 
-  // Content & Settings handlers
-  const addHeroBanner = (banner: Omit<HeroBanner, 'id'>) => {
-    const id = `hero-${Date.now()}`;
-    setHeroBanners((prev) => [{ ...banner, id }, ...prev]);
-  };
+ // Content & Settings handlers
+const addHeroBanner = async (
+  banner: Omit<HeroBanner, 'id'>
+): Promise<void> => {
+  try {
+    const { data, error } = await supabase
+      .from('hero_banners')
+      .insert({
+        badge: banner.badge || '',
+        title: banner.title,
+        subtitle: banner.subtitle || '',
+        coupon_code: banner.couponCode || null,
+        image_url: banner.imageUrl,
+        button_text: banner.ctaText || 'Order Now',
+        button_link: null,
+        cta_category: banner.ctaCategory || 'BAO',
+        bg_color:
+          banner.bgColor ||
+          'from-[#20221A] via-[#2D3021] to-[#393D28]',
+        is_active: banner.isActive !== false,
+        sort_order: 0,
+      })
+      .select()
+      .single();
 
-  const updateHeroBanner = (id: string, updates: Partial<HeroBanner>) => {
-    setHeroBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
-  };
+    if (error) {
+      console.error('Failed to add hero banner:', error);
+      throw error;
+    }
 
-  const deleteHeroBanner = (id: string) => {
-    setHeroBanners((prev) => prev.filter((b) => b.id !== id));
-  };
+    const newBanner: HeroBanner = {
+      id: String(data.id),
+      badge: data.badge || '',
+      title: data.title || '',
+      subtitle: data.subtitle || '',
+      couponCode: data.coupon_code || undefined,
+      imageUrl: data.image_url || '',
+      ctaText: data.button_text || 'Order Now',
+      ctaCategory: data.cta_category || 'BAO',
+      bgColor:
+        data.bg_color ||
+        'from-[#20221A] via-[#2D3021] to-[#393D28]',
+      isActive: Boolean(data.is_active),
+    };
 
-  const toggleHeroBannerStatus = (id: string) => {
-    setHeroBanners((prev) => prev.map((b) => (b.id === id ? { ...b, isActive: !b.isActive } : b)));
-  };
+    setHeroBanners((prev) => [newBanner, ...prev]);
+  } catch (error) {
+    console.error('Add hero banner failed:', error);
+    throw error;
+  }
+};
 
+const updateHeroBanner = async (
+  id: string,
+  updates: Partial<HeroBanner>
+): Promise<void> => {
+  try {
+    const dbUpdates: Record<string, any> = {};
+
+    if (updates.badge !== undefined) {
+      dbUpdates.badge = updates.badge;
+    }
+
+    if (updates.title !== undefined) {
+      dbUpdates.title = updates.title;
+    }
+
+    if (updates.subtitle !== undefined) {
+      dbUpdates.subtitle = updates.subtitle;
+    }
+
+    if (updates.couponCode !== undefined) {
+      dbUpdates.coupon_code = updates.couponCode || null;
+    }
+
+    if (updates.imageUrl !== undefined) {
+      dbUpdates.image_url = updates.imageUrl;
+    }
+
+    if (updates.ctaText !== undefined) {
+      dbUpdates.button_text = updates.ctaText;
+    }
+
+    if (updates.ctaCategory !== undefined) {
+      dbUpdates.cta_category = updates.ctaCategory;
+    }
+
+    if (updates.bgColor !== undefined) {
+      dbUpdates.bg_color = updates.bgColor;
+    }
+
+    if (updates.isActive !== undefined) {
+      dbUpdates.is_active = updates.isActive;
+    }
+
+    const numericId = Number(id);
+
+    if (!Number.isFinite(numericId)) {
+      throw new Error(`Invalid hero banner ID: ${id}`);
+    }
+
+    const { error } = await supabase
+      .from('hero_banners')
+      .update(dbUpdates)
+      .eq('id', numericId);
+
+    if (error) {
+      console.error('Failed to update hero banner:', error);
+      throw error;
+    }
+
+    setHeroBanners((prev) =>
+      prev.map((banner) =>
+        banner.id === id
+          ? { ...banner, ...updates }
+          : banner
+      )
+    );
+  } catch (error) {
+    console.error('Update hero banner failed:', error);
+    throw error;
+  }
+};
+
+const deleteHeroBanner = async (
+  id: string
+): Promise<void> => {
+  try {
+    const numericId = Number(id);
+
+    if (!Number.isFinite(numericId)) {
+      throw new Error(`Invalid hero banner ID: ${id}`);
+    }
+
+    const { error } = await supabase
+      .from('hero_banners')
+      .delete()
+      .eq('id', numericId);
+
+    if (error) {
+      console.error('Failed to delete hero banner:', error);
+      throw error;
+    }
+
+    setHeroBanners((prev) =>
+      prev.filter((banner) => banner.id !== id)
+    );
+  } catch (error) {
+    console.error('Delete hero banner failed:', error);
+    throw error;
+  }
+};
+
+const toggleHeroBannerStatus = async (
+  id: string
+): Promise<void> => {
+  try {
+    const banner = heroBanners.find(
+      (item) => item.id === id
+    );
+
+    if (!banner) {
+      throw new Error(`Hero banner not found: ${id}`);
+    }
+
+    const numericId = Number(id);
+
+    if (!Number.isFinite(numericId)) {
+      throw new Error(`Invalid hero banner ID: ${id}`);
+    }
+
+    const newStatus = !banner.isActive;
+
+    const { error } = await supabase
+      .from('hero_banners')
+      .update({
+        is_active: newStatus,
+      })
+      .eq('id', numericId);
+
+    if (error) {
+      console.error(
+        'Failed to toggle hero banner status:',
+        error
+      );
+      throw error;
+    }
+
+    setHeroBanners((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, isActive: newStatus }
+          : item
+      )
+    );
+  } catch (error) {
+    console.error(
+      'Toggle hero banner status failed:',
+      error
+    );
+    throw error;
+  }
+};
   const updateCategoryConfig = async (
   id: string,
   updates: Partial<CategoryConfig>

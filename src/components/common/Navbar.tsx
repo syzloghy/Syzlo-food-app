@@ -33,16 +33,9 @@ export const Navbar: React.FC = () => {
     brandConfig,
     osmConfig,
     customerProfile,
-    isStaffAuthenticated,
-    setIsStaffAuthenticated,
-    verifyStaffPin,
   } = useApp();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [adminAuthModalOpen, setAdminAuthModalOpen] = useState(false);
-  const [authPhone, setAuthPhone] = useState('');
-  const [authPin, setAuthPin] = useState('');
-  const [authError, setAuthError] = useState('');
 
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [selectedAddrLabel, setSelectedAddrLabel] = useState('Home - Bandra West');
@@ -66,65 +59,8 @@ export const Navbar: React.FC = () => {
     setIsSidebarOpen(false);
   };
 
-  const handleAdminClick = () => {
-    if (isStaffAuthenticated) {
-      // Already authenticated, user can pick from the portals
-      return;
-    }
-    setAuthError('');
-    setAdminAuthModalOpen(true);
-  };
-
-const handleVerifyAuth = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  const success = await verifyStaffPin(authPhone, authPin);
-
-  if (success) {
-    setAdminAuthModalOpen(false);
-    setAuthError('');
-  } else {
-    setAuthError('Invalid email or password.');
-  }
-};
-
   return (
     <>
-      {/* Staff View Bar (Only shown when currently inside a staff portal, allowing return to customer view) */}
-      {currentView !== 'customer' && (
-        <div className="bg-[#1F2218] text-[#E7DECD] px-4 py-2 text-xs border-b border-[#303325] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-extrabold uppercase tracking-wider text-[11px] text-white">
-              {brandConfig.brandName || 'SYZLO'} Staff Management
-            </span>
-            <span className="text-stone-400 text-[11px]">
-              • Viewing {currentView.toUpperCase()} Portal
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentView('customer')}
-              className="px-3 py-1 bg-olive-600 hover:bg-olive-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
-            >
-              <span>← Back to Customer App</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setIsStaffAuthenticated(false);
-                setCurrentView('customer');
-              }}
-              className="px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-lg text-xs font-medium"
-              title="Lock Admin Access"
-            >
-              Lock
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Clean, Relaxing Customer Header (Matches reference syz.png) */}
       {currentView === 'customer' && (
         <header className="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#EADFCF] transition-all">
@@ -330,142 +266,10 @@ const handleVerifyAuth = async (e: React.FormEvent) => {
                   <ChevronRight className="w-4 h-4 opacity-70" />
                 </button>
               </div>
-
-              {/* Single Entry Staff Management Gate: "SYZLO ADMIN" */}
-              <div className="pt-4 border-t border-cream-200 space-y-3">
-                <div className="flex items-center justify-between px-3">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-stone-400">
-                    Staff Management Gate
-                  </span>
-                  {isStaffAuthenticated ? (
-                    <span className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
-                      <Unlock className="w-3 h-3" /> Unlocked
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-bold text-stone-400 flex items-center gap-1">
-                      <Lock className="w-3 h-3" /> PIN Required
-                    </span>
-                  )}
-                </div>
-
-                {/* Master SYZLO ADMIN Button */}
-                <button
-                  id="syzlo-admin-trigger"
-                  onClick={handleAdminClick}
-                  className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all ${
-                    isStaffAuthenticated
-                      ? 'bg-stone-900 text-white shadow-md'
-                      : 'bg-white hover:bg-cream-100 border-2 border-dashed border-stone-300 text-stone-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black ${
-                      isStaffAuthenticated ? 'bg-olive-500 text-white' : 'bg-stone-100 text-stone-600'
-                    }`}>
-                      <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <div className="text-left">
-                      <span className="font-black text-sm block">SYZLO ADMIN</span>
-                      <span className={`text-[10px] ${isStaffAuthenticated ? 'text-stone-300' : 'text-stone-500'}`}>
-                        {isStaffAuthenticated
-                          ? 'Manage Dashboard, KDS, POS & Riders'
-                          : 'Click to enter staff PIN & phone'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {isStaffAuthenticated ? (
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold">
-                        ACCESS OPEN
-                      </span>
-                    ) : (
-                      <KeyRound className="w-4 h-4 text-stone-400" />
-                    )}
-                  </div>
-                </button>
-
-                {/* Unlocked Management List (Shows only when verified) */}
-                {isStaffAuthenticated && (
-                  <div className="space-y-2 pl-2 pt-2 border-l-2 border-olive-500 animate-fadeIn">
-                    <button
-                      onClick={() => handleSwitchPortal('admin')}
-                      className={`w-full p-3 rounded-xl flex items-center justify-between text-xs font-bold transition-colors ${
-                        currentView === 'admin'
-                          ? 'bg-olive-600 text-white'
-                          : 'bg-white hover:bg-cream-100 text-stone-700 border border-cream-200'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Store className="w-4 h-4 text-amber-500" />
-                        <span>Admin Dashboard (CMS & Settings)</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
-                    </button>
-
-                    <button
-                      onClick={() => handleSwitchPortal('kds')}
-                      className={`w-full p-3 rounded-xl flex items-center justify-between text-xs font-bold transition-colors ${
-                        currentView === 'kds'
-                          ? 'bg-olive-600 text-white'
-                          : 'bg-white hover:bg-cream-100 text-stone-700 border border-cream-200'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <ChefHat className="w-4 h-4 text-orange-500" />
-                        <span>Kitchen Display System (KDS)</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
-                    </button>
-
-                    <button
-                      onClick={() => handleSwitchPortal('pos')}
-                      className={`w-full p-3 rounded-xl flex items-center justify-between text-xs font-bold transition-colors ${
-                        currentView === 'pos'
-                          ? 'bg-olive-600 text-white'
-                          : 'bg-white hover:bg-cream-100 text-stone-700 border border-cream-200'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Monitor className="w-4 h-4 text-blue-500" />
-                        <span>Restaurant Billing POS</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
-                    </button>
-
-                    <button
-                      onClick={() => handleSwitchPortal('rider')}
-                      className={`w-full p-3 rounded-xl flex items-center justify-between text-xs font-bold transition-colors ${
-                        currentView === 'rider'
-                          ? 'bg-olive-600 text-white'
-                          : 'bg-white hover:bg-cream-100 text-stone-700 border border-cream-200'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Bike className="w-4 h-4 text-emerald-600" />
-                        <span>Rider Delivery Portal</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
-                    </button>
-
-                    <div className="pt-2 flex justify-end">
-                      <button
-                        onClick={() => {
-                          setIsStaffAuthenticated(false);
-                        }}
-                        className="text-[11px] font-bold text-red-600 hover:text-red-700 flex items-center gap-1 py-1 px-2 rounded-lg hover:bg-red-50 transition-colors"
-                      >
-                        <Lock className="w-3 h-3" />
-                        <span>Lock Admin Session</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {/* Relaxing Comfort Quote */}
               <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-center">
                 <p className="text-xs font-semibold text-amber-950 leading-relaxed italic">
-                  &ldquo;AI can do everything, but it still can&apos;t prepare food with love like Mom.&rdquo;
+                  &ldquo;AI can do everything, but it still can&apos;t prepare food like Mom.&rdquo;
                 </p>
                 <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block mt-1">
                   Handcrafted with Soul • SYZLO
@@ -478,91 +282,6 @@ const handleVerifyAuth = async (e: React.FormEvent) => {
               <span>{brandConfig.brandName} v2.4</span>
               <span>OpenStreetMap & Razorpay Ready</span>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* SYZLO staff authentication modal */}
-      {adminAuthModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 border border-cream-300 shadow-2xl space-y-4 animate-scaleUp">
-            <div className="flex items-center justify-between pb-3 border-b border-cream-200">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-olive-500 text-white flex items-center justify-center font-bold">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-black text-base text-syzlo-charcoal">SYZLO ADMIN Gate</h3>
-                  <p className="text-[11px] text-stone-500">Management & Staff Portals</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setAdminAuthModalOpen(false)}
-                className="p-1 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-cream-100"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleVerifyAuth} className="space-y-3.5">
-     <div>
-  <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center gap-1">
-    <Mail className="w-3.5 h-3.5 text-olive-600" />
-    Admin Email
-  </label>
-  <input
-    type="email"
-    value={authPhone}
-    onChange={(e) => {
-      setAuthPhone(e.target.value);
-      setAuthError('');
-    }}
-    placeholder="Enter admin email"
-    className="w-full px-3.5 py-2.5 rounded-xl border border-cream-300 text-xs font-semibold focus:outline-hidden focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20"
-    autoFocus
-    required
-  />
-</div>
-
-<div>
-  <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center gap-1">
-    <KeyRound className="w-3.5 h-3.5 text-olive-600" />
-    Password
-  </label>
-  <input
-    type="password"
-    value={authPin}
-    onChange={(e) => {
-      setAuthPin(e.target.value);
-      setAuthError('');
-    }}
-    placeholder="Enter password"
-    className="w-full px-3.5 py-2.5 rounded-xl border border-cream-300 text-xs font-semibold focus:outline-hidden focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20"
-    required
-  />
-</div>
-              {authError && (
-                <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-[11px] font-bold text-red-700">
-                  {authError}
-                </div>
-              )}
-
-              <div className="pt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAdminAuthModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-cream-100 hover:bg-cream-200 text-stone-700 text-xs font-bold transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-olive-600 hover:bg-olive-700 text-white text-xs font-black transition-colors shadow-sm"
-                >
-                  Unlock Admin
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

@@ -225,155 +225,174 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
         </div>
       </div>
 
-      {/* 4. CIRCULAR DISH CATEGORIES ROW (Matches reference image syz.png) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5">
-        <div className="flex items-center justify-between gap-3 overflow-x-auto pb-2 scrollbar-none">
-          {/* 1. All Category */}
-          <button
-            onClick={() => setSelectedCategory('ALL')}
-            className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
-          >
-            <div
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
-                selectedCategory === 'ALL'
-                  ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
-                  : 'border-cream-300 hover:border-[#565F28]/50'
-              }`}
-            >
-              <img
-src={getCategoryImage(
-  'All',
-  'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=300&q=80'
-)}                alt="All Dishes"
-                className="w-full h-full object-cover rounded-full"
-              />
-            </div>
-            <span
-              className={`text-xs transition-colors ${
-                selectedCategory === 'ALL' ? 'font-black text-[#48521E]' : 'font-semibold text-stone-700'
-              }`}
-            >
-              All
-            </span>
-          </button>
+     {/* 4. CIRCULAR DISH CATEGORIES ROW */}
+<div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5">
+  <div className="flex items-center justify-between gap-3 overflow-x-auto pb-2 scrollbar-none">
 
-          {/* 2. Bao Category */}
-          <button
-            onClick={() => setSelectedCategory('BAO')}
-            className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
-          >
-            <div
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
-                selectedCategory === 'BAO'
-                  ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
-                  : 'border-cream-300 hover:border-[#565F28]/50'
-              }`}
-            >
-              <img
-src={getCategoryImage(
-  'Bao',
-  'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=300&q=80'
-)}                alt="Bao"
-                className="w-full h-full object-cover rounded-full"
-              />
-            </div>
-            <span
-              className={`text-xs transition-colors ${
-                selectedCategory === 'BAO' ? 'font-black text-[#48521E]' : 'font-semibold text-stone-700'
-              }`}
-            >
-              Bao
-            </span>
-          </button>
-
-          {/* 3. Chinese Category */}
-          <button
-            onClick={() => setSelectedCategory('CHINESE')}
-            className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
-          >
-            <div
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
-                selectedCategory === 'CHINESE'
-                  ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
-                  : 'border-cream-300 hover:border-[#565F28]/50'
-              }`}
-            >
-              <img
-src={getCategoryImage(
-  'CHINESE',
-  'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=300&q=80'
-)}                alt="Chinese"
-                className="w-full h-full object-cover rounded-full"
-              />
-            </div>
-            <span
-              className={`text-xs transition-colors ${
-                selectedCategory === 'CHINESE' ? 'font-black text-[#48521E]' : 'font-semibold text-stone-700'
-              }`}
-            >
-              Chinese
-            </span>
-          </button>
-
-          {/* 4. Combos Category */}
-          <button
-            onClick={() => setSelectedCategory('COMBOS')}
-            className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
-          >
-            <div
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
-                selectedCategory === 'COMBOS'
-                  ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
-                  : 'border-cream-300 hover:border-[#565F28]/50'
-              }`}
-            >
-              <img
-src={getCategoryImage(
-  'Combos',
-  'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=300&q=80'
-)}                alt="Combos"
-                className="w-full h-full object-cover rounded-full"
-              />
-            </div>
-            <span
-              className={`text-xs transition-colors ${
-                selectedCategory === 'COMBOS' ? 'font-black text-[#48521E]' : 'font-semibold text-stone-700'
-              }`}
-            >
-              Combos
-            </span>
-          </button>
-
-          {/* 5. Drinks Category */}
-          <button
-            onClick={() => setSelectedCategory('DRINKS')}
-            className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
-          >
-            <div
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
-                selectedCategory === 'DRINKS'
-                  ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
-                  : 'border-cream-300 hover:border-[#565F28]/50'
-              }`}
-            >
-              <img
-src={getCategoryImage(
-  'Drinks',
-  'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=300&q=80'
-)}                alt="Drinks"
-                className="w-full h-full object-cover rounded-full"
-              />
-            </div>
-            <span
-              className={`text-xs transition-colors ${
-                selectedCategory === 'DRINKS' ? 'font-black text-[#48521E]' : 'font-semibold text-stone-700'
-              }`}
-            >
-              Drinks
-            </span>
-          </button>
-        </div>
+    {/* 1. All Category */}
+    <button
+      onClick={() => setSelectedCategory('ALL')}
+      className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
+    >
+      <div
+        className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
+          selectedCategory === 'ALL'
+            ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
+            : 'border-cream-300 hover:border-[#565F28]/50'
+        }`}
+      >
+        <img
+          src="https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=300&q=80"
+          alt="All Dishes"
+          className="w-full h-full object-cover rounded-full"
+        />
       </div>
+
+      <span
+        className={`text-xs transition-colors ${
+          selectedCategory === 'ALL'
+            ? 'font-black text-[#48521E]'
+            : 'font-semibold text-stone-700'
+        }`}
+      >
+        All
+      </span>
+    </button>
+
+    {/* 2. Bao Category */}
+    <button
+      onClick={() => setSelectedCategory('BAO')}
+      className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
+    >
+      <div
+        className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
+          selectedCategory === 'BAO'
+            ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
+            : 'border-cream-300 hover:border-[#565F28]/50'
+        }`}
+      >
+        <img
+          src={getCategoryImage(
+            'BAO',
+            'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=300&q=80'
+          )}
+          alt="Bao"
+          className="w-full h-full object-cover rounded-full"
+        />
+      </div>
+
+      <span
+        className={`text-xs transition-colors ${
+          selectedCategory === 'BAO'
+            ? 'font-black text-[#48521E]'
+            : 'font-semibold text-stone-700'
+        }`}
+      >
+        Bao
+      </span>
+    </button>
+
+    {/* 3. Chinese Category */}
+    <button
+      onClick={() => setSelectedCategory('CHINESE')}
+      className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
+    >
+      <div
+        className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
+          selectedCategory === 'CHINESE'
+            ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
+            : 'border-cream-300 hover:border-[#565F28]/50'
+        }`}
+      >
+        <img
+          src={getCategoryImage(
+            'CHINESE',
+            'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=300&q=80'
+          )}
+          alt="Chinese"
+          className="w-full h-full object-cover rounded-full"
+        />
+      </div>
+
+      <span
+        className={`text-xs transition-colors ${
+          selectedCategory === 'CHINESE'
+            ? 'font-black text-[#48521E]'
+            : 'font-semibold text-stone-700'
+        }`}
+      >
+        Chinese
+      </span>
+    </button>
+
+    {/* 4. Combos Category */}
+    <button
+      onClick={() => setSelectedCategory('COMBOS')}
+      className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
+    >
+      <div
+        className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
+          selectedCategory === 'COMBOS'
+            ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
+            : 'border-cream-300 hover:border-[#565F28]/50'
+        }`}
+      >
+        <img
+          src={getCategoryImage(
+            'COMBOS',
+            'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80'
+          )}
+          alt="Combos"
+          className="w-full h-full object-cover rounded-full"
+        />
+      </div>
+
+      <span
+        className={`text-xs transition-colors ${
+          selectedCategory === 'COMBOS'
+            ? 'font-black text-[#48521E]'
+            : 'font-semibold text-stone-700'
+        }`}
+      >
+        Combos
+      </span>
+    </button>
+
+    {/* 5. Drinks Category */}
+    <button
+      onClick={() => setSelectedCategory('DRINKS')}
+      className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
+    >
+      <div
+        className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
+          selectedCategory === 'DRINKS'
+            ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
+            : 'border-cream-300 hover:border-[#565F28]/50'
+        }`}
+      >
+        <img
+          src={getCategoryImage(
+            'DRINKS',
+            'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=300&q=80'
+          )}
+          alt="Drinks"
+          className="w-full h-full object-cover rounded-full"
+        />
+      </div>
+
+      <span
+        className={`text-xs transition-colors ${
+          selectedCategory === 'DRINKS'
+            ? 'font-black text-[#48521E]'
+            : 'font-semibold text-stone-700'
+        }`}
+      >
+        Drinks
+      </span>
+    </button>
+
+  </div>
+</div>
 
       {/* 5. POPULAR ITEMS 2-COLUMN GRID (Matches reference image syz.png) */}
       <div id="popular-items-section" className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">

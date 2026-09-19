@@ -391,8 +391,42 @@ src={getCategoryImage(
       >
         Drinks
       </span>
-    </button>
+      </button>
 
+    {/* 6. Starters Category */}
+    <button
+      onClick={() => setSelectedCategory('STARTERS')}
+      className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
+    >
+      <div
+        className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 p-0.5 transition-all shadow-2xs ${
+          selectedCategory === 'STARTERS'
+            ? 'border-[#565F28] ring-2 ring-[#565F28]/30 scale-105'
+            : 'border-cream-300 hover:border-[#565F28]/50'
+        }`}
+      >
+        <img
+          src={getCategoryImage(
+            'STARTERS',
+            'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=300&q=80'
+          )}
+          alt="Starters"
+          className="w-full h-full object-cover rounded-full"
+        />
+      </div>
+
+      <span
+        className={`text-xs transition-colors ${
+          selectedCategory === 'STARTERS'
+            ? 'font-black text-[#48521E]'
+            : 'font-semibold text-stone-700'
+        }`}
+      >
+        Starters
+      </span>
+    </button>
+  </div>
+</div>
   </div>
 </div>
 

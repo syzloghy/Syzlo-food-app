@@ -74,22 +74,18 @@ export const Navbar: React.FC = () => {
     setAdminAuthModalOpen(true);
   };
 
-  const handleVerifyAuth = (e: React.FormEvent) => {
-    e.preventDefault();
-    const success = verifyStaffPin(authPhone, authPin);
-    if (success) {
-      setAdminAuthModalOpen(false);
-      setAuthError('');
-    } else {
-      setAuthError('Invalid phone number or PIN.');
-    }
-  };
+const handleVerifyAuth = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-  const handleFillDemoAuth = () => {
-    setAuthPhone(import.meta.env.VITE_DEMO_ADMIN_PHONE || '');
-    setAuthPin(import.meta.env.VITE_DEMO_ADMIN_PIN || '');
+  const success = await verifyStaffPin(authPhone, authPin);
+
+  if (success) {
+    setAdminAuthModalOpen(false);
     setAuthError('');
-  };
+  } else {
+    setAuthError('Invalid email or password.');
+  }
+};
 
   return (
     <>
@@ -508,59 +504,47 @@ export const Navbar: React.FC = () => {
             </div>
 
             <form onSubmit={handleVerifyAuth} className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center gap-1">
-                  <Phone className="w-3.5 h-3.5 text-olive-600" />
-                  Staff Phone Number
-                </label>
-                <input
-                  type="text"
-                  value={authPhone}
-                  onChange={(e) => {
-                    setAuthPhone(e.target.value);
-                    setAuthError('');
-                  }}
-                  placeholder="Enter admin phone"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-cream-300 text-xs font-semibold focus:outline-hidden focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20"
-                  autoFocus
-                  required
-                />
-              </div>
+     <div>
+  <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center gap-1">
+    <Mail className="w-3.5 h-3.5 text-olive-600" />
+    Admin Email
+  </label>
+  <input
+    type="email"
+    value={authPhone}
+    onChange={(e) => {
+      setAuthPhone(e.target.value);
+      setAuthError('');
+    }}
+    placeholder="Enter admin email"
+    className="w-full px-3.5 py-2.5 rounded-xl border border-cream-300 text-xs font-semibold focus:outline-hidden focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20"
+    autoFocus
+    required
+  />
+</div>
 
-              <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center gap-1">
-                  <KeyRound className="w-3.5 h-3.5 text-olive-600" />
-                  Security PIN
-                </label>
-                <input
-                  type="password"
-                  value={authPin}
-                  onChange={(e) => {
-                    setAuthPin(e.target.value);
-                    setAuthError('');
-                  }}
-                  placeholder="Enter security PIN"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-cream-300 text-xs font-semibold focus:outline-hidden focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20"
-                  required
-                />
-              </div>
-
+<div>
+  <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center gap-1">
+    <KeyRound className="w-3.5 h-3.5 text-olive-600" />
+    Password
+  </label>
+  <input
+    type="password"
+    value={authPin}
+    onChange={(e) => {
+      setAuthPin(e.target.value);
+      setAuthError('');
+    }}
+    placeholder="Enter password"
+    className="w-full px-3.5 py-2.5 rounded-xl border border-cream-300 text-xs font-semibold focus:outline-hidden focus:border-olive-500 focus:ring-2 focus:ring-olive-500/20"
+    required
+  />
+</div>
               {authError && (
                 <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-[11px] font-bold text-red-700">
                   {authError}
                 </div>
               )}
-
-              <div className="flex items-center justify-between text-[11px] pt-1">
-                <button
-                  type="button"
-                  onClick={handleFillDemoAuth}
-                  className="text-olive-700 font-bold hover:underline"
-                >
-                  ⚡ Auto-fill credentials
-                </button>
-                <span className="text-stone-400 text-[10px]">Demo credentials are configured by the app owner.</span>
-              </div>
 
               <div className="pt-2 flex gap-2">
                 <button

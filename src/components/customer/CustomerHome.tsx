@@ -242,8 +242,10 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
         }`}
       >
         <img
-          src="https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=300&q=80"
-          alt="All Dishes"
+src={getCategoryImage(
+  'ALL',
+  'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=300&q=80'
+)}          alt="All Dishes"
           className="w-full h-full object-cover rounded-full"
         />
       </div>

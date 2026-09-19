@@ -80,11 +80,13 @@ export const CategoryManagement: React.FC = () => {
     setIsActive(cat.isActive);
   };
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingCategory) return;
+ const handleSave = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    updateCategoryConfig(editingCategory.id, {
+  if (!editingCategory) return;
+
+  try {
+    await updateCategoryConfig(editingCategory.id, {
       name,
       description,
       icon,
@@ -93,8 +95,19 @@ export const CategoryManagement: React.FC = () => {
     });
 
     setEditingCategory(null);
-  };
 
+    alert('Category saved successfully.');
+  } catch (error: any) {
+    console.error('SAVE CATEGORY ERROR:', error);
+
+    alert(
+      error?.message ||
+      error?.details ||
+      error?.hint ||
+      'Failed to save category.'
+    );
+  }
+};
   return (
     <div className="space-y-6">
       {/* Header */}

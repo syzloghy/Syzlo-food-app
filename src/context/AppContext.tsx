@@ -823,6 +823,7 @@ const updateMenuItem = async (
     );
   } catch (error) {
     console.error('Update menu item failed:', error);
+    throw error;
   }
 };
 

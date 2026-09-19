@@ -2,7 +2,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-
+import { AdminPortal } from './components/admin/AdminPortal';
 import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/common/Navbar';
@@ -60,9 +60,11 @@ const AppContent: React.FC = () => {
 };
 
 export default function App() {
+  const isAdminRoute = window.location.pathname.startsWith('/admin');
+
   return (
     <AppProvider>
-      <AppContent />
+      {isAdminRoute ? <AdminPortal /> : <AppContent />}
     </AppProvider>
   );
 }

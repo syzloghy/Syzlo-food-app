@@ -380,6 +380,61 @@ const verifyStaffPin = async (
   // Dynamic configurations
   const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(INITIAL_HERO_BANNERS);
   const [categoriesConfig, setCategoriesConfig] = useState<CategoryConfig[]>(INITIAL_CATEGORIES_CONFIG);
+  useEffect(() => {
+  const loadCategoriesFromSupabase = async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select(`
+        id,
+        name,
+        slug,
+        description,
+        image_url,
+        is_active,
+        sort_order
+      `)
+      .order('sort_order', { ascending: true });
+
+    if (error) {
+      console.error('Failed to load categories from Supabase:', error);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn('Supabase categories is empty.');
+      return;
+    }
+
+    const supabaseCategories: CategoryConfig[] = data.map((category: any) => ({
+      id: category.slug.toUpperCase(),
+      name: category.name,
+      description: category.description || '',
+      icon:
+        category.slug === 'bao'
+          ? '🥟'
+          : category.slug === 'combos'
+          ? '🍱'
+          : category.slug === 'chinese'
+          ? '🍜'
+          : category.slug === 'drinks'
+          ? '🥤'
+          : category.slug === 'starters'
+          ? '🍟'
+          : '🍽️',
+      image: category.image_url || '',
+      isActive: Boolean(category.is_active),
+    }));
+
+    console.log(
+      'Supabase categories loaded:',
+      supabaseCategories
+    );
+
+    setCategoriesConfig(supabaseCategories);
+  };
+
+  loadCategoriesFromSupabase();
+}, []);
   const [globalAddons, setGlobalAddons] = useState<GlobalAddon[]>(INITIAL_GLOBAL_ADDONS);
   const [paymentGateways, setPaymentGateways] = useState<PaymentGatewayConfig[]>(INITIAL_PAYMENT_GATEWAYS);
   const [brandConfig, setBrandConfig] = useState<AppBrandConfig>(INITIAL_BRAND_CONFIG);

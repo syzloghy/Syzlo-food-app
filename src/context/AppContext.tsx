@@ -183,111 +183,134 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Entities
   const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
-    useEffect(() => {
-    const loadMenuFromSupabase = async () => {
-      const { data, error } = await supabase
-        .from('menu_items')
-       .select(`
-  id,
-  name,
-  description,
-  image_url,
-  price,
-  is_veg,
-  is_available,
-  is_featured,
-  sort_order,
-categories (
-  name,
-  slug
-)
-`)
-.eq('is_available', true);
-      if (error) {
-        console.error('Failed to load menu from Supabase:', error);
-        return;
-      }
+ useEffect(() => {
+  const loadMenuFromSupabase = async () => {
+    const { data, error } = await supabase
+      .from('menu_items')
+      .select(`
+        id,
+        name,
+        description,
+        image_url,
+        price,
+        is_veg,
+        is_available,
+        is_featured,
+        sort_order,
+        categories (
+          name,
+          slug
+        )
+      `)
+      .eq('is_available', true);
 
-      if (!data || data.length === 0) {
-        console.warn('Supabase menu_items is empty. Keeping demo menu.');
-        return;
-      }
-      const { data: addonRelations, error: addonError } = await supabase
-  .from('menu_item_addons')
-  .select(`
-    menu_item_id,
-    addons (
-      id,
-      name,
-      price
-    )
-  `);
+    if (error) {
+      console.error('Failed to load menu from Supabase:', error);
+      return;
+    }
 
-if (addonError) {
-  console.error('Failed to load menu add-ons from Supabase:', addonError);
-}
-const categoryOrder: Record<string, number> = {
-  BAO: 1,
-  COMBOS: 2,
-  DRINKS: 3,
-  CHINESE: 4,
-  STARTERS: 5,
-};
+    if (!data || data.length === 0) {
+      console.warn('Supabase menu_items is empty.');
+      return;
+    }
 
-data.sort((a: any, b: any) => {
-  const categoryA =
-    categoryOrder[a.categories?.slug?.toUpperCase()] ?? 99;
+    const { data: addonRelations, error: addonError } = await supabase
+      .from('menu_item_addons')
+      .select(`
+        menu_item_id,
+        addons (
+          id,
+          name,
+          price
+        )
+      `);
 
-  const categoryB =
-    categoryOrder[b.categories?.slug?.toUpperCase()] ?? 99;
+    if (addonError) {
+      console.error('Failed to load menu add-ons from Supabase:', addonError);
+    }
 
-  if (categoryA !== categoryB) {
-    return categoryA - categoryB;
-  }
-
-  return Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0);
-});
-      const supabaseMenu: MenuItem[] = data.map((item: any) => {
-        const categorySlug = item.categories?.slug?.toUpperCase();
-
-        const category =
-          categorySlug === 'BAO' ||
-          categorySlug === 'COMBOS' ||
-          categorySlug === 'CHINESE' ||
-          categorySlug === 'STARTERS' ||
-          categorySlug === 'DRINKS'
-            ? categorySlug
-            : 'CHINESE';
-
-        return {
-          id: item.id,
-          name: item.name,
-          category,
-          description: item.description || '',
-          price: Number(item.price) || 0,
-          rating: 0,
-          reviewsCount: 0,
-          isVeg: Boolean(item.is_veg),
-          isBestseller: Boolean(item.is_featured),
-          image: item.image_url || '',
-        addOns: (addonRelations || [])
-  .filter((relation: any) => relation.menu_item_id === item.id)
-  .map((relation: any) => relation.addons)
-  .filter(Boolean)
-  .map((addon: any) => ({
-    id: addon.id,
-    name: addon.name,
-    price: Number(addon.price) || 0,
-  })),
-          isAvailable: Boolean(item.is_available),
-        };
-      });
-
-      setMenuItems(supabaseMenu);
+    const categoryOrder: Record<string, number> = {
+      BAO: 1,
+      COMBOS: 2,
+      DRINKS: 3,
+      CHINESE: 4,
+      STARTERS: 5,
     };
 
+    data.sort((a: any, b: any) => {
+      const categoryA =
+        categoryOrder[a.categories?.slug?.toUpperCase()] ?? 99;
+
+      const categoryB =
+        categoryOrder[b.categories?.slug?.toUpperCase()] ?? 99;
+
+      if (categoryA !== categoryB) {
+        return categoryA - categoryB;
+      }
+
+      return Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0);
+    });
+
+    const supabaseMenu: MenuItem[] = data.map((item: any) => {
+      const categorySlug = item.categories?.slug?.toUpperCase();
+
+      const category =
+        categorySlug === 'BAO' ||
+        categorySlug === 'COMBOS' ||
+        categorySlug === 'CHINESE' ||
+        categorySlug === 'STARTERS' ||
+        categorySlug === 'DRINKS'
+          ? categorySlug
+          : 'CHINESE';
+
+      return {
+        id: item.id,
+        name: item.name,
+        category,
+        description: item.description || '',
+        price: Number(item.price) || 0,
+        rating: 0,
+        reviewsCount: 0,
+        isVeg: Boolean(item.is_veg),
+        isBestseller: Boolean(item.is_featured),
+        image: item.image_url || '',
+        addOns: (addonRelations || [])
+          .filter(
+            (relation: any) =>
+              relation.menu_item_id === item.id
+          )
+          .map((relation: any) => relation.addons)
+          .filter(Boolean)
+          .map((addon: any) => ({
+            id: addon.id,
+            name: addon.name,
+            price: Number(addon.price) || 0,
+          })),
+        isAvailable: Boolean(item.is_available),
+      };
+    });
+
+    console.log(
+      'Supabase menu loaded:',
+      supabaseMenu.length,
+      'items'
+    );
+
+    setMenuItems(supabaseMenu);
+  };
+
+  loadMenuFromSupabase();
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange(() => {
     loadMenuFromSupabase();
-  }, []);
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}, []);
   const [orders, setOrders] = useState<CustomerOrder[]>(INITIAL_ORDERS);
   const [riders, setRiders] = useState<Rider[]>(INITIAL_RIDERS);
   const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);

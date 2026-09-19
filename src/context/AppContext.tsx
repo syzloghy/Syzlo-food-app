@@ -295,23 +295,26 @@ data.sort((a: any, b: any) => {
   const [staff] = useState<StaffMember[]>(INITIAL_STAFF);
   const [customerProfile, setCustomerProfile] = useState<CustomerProfile>(INITIAL_CUSTOMER_PROFILE);
 
-  // Demo staff portal gate. IMPORTANT: frontend credentials are not secure authentication.
-  const [isStaffAuthenticated, setIsStaffAuthenticated] = useState<boolean>(false);
+ // Supabase staff authentication
+const [isStaffAuthenticated, setIsStaffAuthenticated] = useState<boolean>(false);
 
-  const verifyStaffPin = (phone: string, pin: string): boolean => {
-    const cleanPhone = phone.replace(/\D/g, '');
-    const configuredPhone = (import.meta.env.VITE_DEMO_ADMIN_PHONE || '').replace(/\D/g, '');
-    const configuredPin = String(import.meta.env.VITE_DEMO_ADMIN_PIN || '');
-    const isPhoneMatch = Boolean(configuredPhone) && cleanPhone === configuredPhone;
-    const isPinMatch = Boolean(configuredPin) && pin.trim() === configuredPin;
+const verifyStaffPin = async (
+  email: string,
+  password: string
+): Promise<boolean> => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email.trim(),
+    password,
+  });
 
-    if (isPhoneMatch && isPinMatch) {
-      setIsStaffAuthenticated(true);
-      return true;
-    }
+  if (error || !data.user) {
+    console.error('Admin login failed:', error);
     return false;
-  };
+  }
 
+  setIsStaffAuthenticated(true);
+  return true;
+};
   const updateCustomerProfile = (updates: Partial<CustomerProfile>) => {
     setCustomerProfile((prev) => ({ ...prev, ...updates }));
   };

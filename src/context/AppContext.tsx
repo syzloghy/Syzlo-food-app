@@ -750,7 +750,7 @@ const addMenuItem = async (item: Omit<MenuItem, 'id'>) => {
       console.error('Failed to add menu item:', error);
       throw error;
     }
-};
+    
     const newItem: MenuItem = {
       ...item,
       id: data.id,
@@ -766,8 +766,6 @@ const addMenuItem = async (item: Omit<MenuItem, 'id'>) => {
   throw error;
 }
 };
-
-const updateMenuItem = async (
 
 const updateMenuItem = async (
   id: string,

@@ -299,12 +299,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMenuItems(supabaseMenu);
   };
 
-  loadMenuFromSupabase();
+loadMenuFromSupabase();
 
 const {
   data: { subscription },
 } = supabase.auth.onAuthStateChange((event) => {
-  if (event === 'SIGNED_IN') {
+  if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
     setTimeout(() => {
       loadMenuFromSupabase();
     }, 0);

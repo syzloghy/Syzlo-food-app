@@ -199,7 +199,8 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
   {/* Soft gradient blend into the background on the left edge of image */}
   <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-[#EDE6D6] to-transparent pointer-events-none" />
 </div>
-      </div>
+          </div>
+        </div>
 
       {/* 3. SEARCH BAR */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4">
@@ -631,11 +632,12 @@ src={getCategoryImage(
               )}
             </div>
 
-            <p className="text-[11px] text-stone-400 text-center">
+           <p className="text-[11px] text-stone-400 text-center">
   Delivering hot Asian baos and wok bowls across Guwahati
 </p>
-          </div>
-        </div>
-    </div>
-  );
+</div>
+</div>
+  )}
+</div>
+);
 };

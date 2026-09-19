@@ -194,7 +194,7 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
       alt="Delicious Hot Steaming Asian Dish"
       className="w-full h-full object-cover object-center"
     />
-  
+  )}
 
   <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-[#EDE6D6] to-transparent pointer-events-none" />
 </div>
@@ -634,8 +634,10 @@ src={getCategoryImage(
            <p className="text-[11px] text-stone-400 text-center">
   Delivering hot Asian baos and wok bowls across Guwahati
 </p>
-</div>
-</div>
-</div>
-);
+          </div>
+        </div>
+      </div>
+    )}
+    </div>
+  );
 };

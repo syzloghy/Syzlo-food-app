@@ -637,7 +637,6 @@ src={getCategoryImage(
 </p>
 </div>
 </div>
-  )}
 </div>
 );
 };

@@ -166,11 +166,16 @@ export const MenuManagement: React.FC = () => {
 
       setIsModalOpen(false);
       setEditingItem(null);
-    } catch (error) {
-      console.error('Failed to save menu item:', error);
-      alert('Failed to save menu item.');
-    }
-  };
+    }catch (error: any) {
+  console.error('SAVE MENU ITEM ERROR:', error);
+
+  alert(
+    error?.message ||
+    error?.details ||
+    error?.hint ||
+    'Failed to save menu item.'
+  );
+}
 
   const handleDelete = async (item: MenuItem) => {
     const confirmed = window.confirm(

@@ -185,7 +185,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
 
   // Entities
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
  useEffect(() => {
   const loadMenuFromSupabase = async () => {
   const {
@@ -378,8 +378,8 @@ const verifyStaffPin = async (
   };
 
   // Dynamic configurations
- const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(INITIAL_HERO_BANNERS);
-const [categoriesConfig, setCategoriesConfig] = useState<CategoryConfig[]>(INITIAL_CATEGORIES_CONFIG);
+ const [heroBanners, setHeroBanners] = useState<HeroBanner[]>([]);
+const [categoriesConfig, setCategoriesConfig] = useState<CategoryConfig[]>([]);
 
 useEffect(() => {
   const loadHeroBannersFromSupabase = async () => {

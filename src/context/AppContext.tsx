@@ -115,7 +115,10 @@ verifyStaffPin: (email: string, password: string) => Promise<boolean>;
   toggleHeroBannerStatus: (id: string) => void;
 
   categoriesConfig: CategoryConfig[];
-  updateCategoryConfig: (id: string, updates: Partial<CategoryConfig>) => void;
+ updateCategoryConfig: (
+  id: string,
+  updates: Partial<CategoryConfig>
+) => Promise<void>;
 
   globalAddons: GlobalAddon[];
   addGlobalAddon: (addon: Omit<GlobalAddon, 'id'>) => void;
@@ -532,10 +535,49 @@ const verifyStaffPin = async (
     setHeroBanners((prev) => prev.map((b) => (b.id === id ? { ...b, isActive: !b.isActive } : b)));
   };
 
-  const updateCategoryConfig = (id: string, updates: Partial<CategoryConfig>) => {
-    setCategoriesConfig((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
-  };
+  const updateCategoryConfig = async (
+  id: string,
+  updates: Partial<CategoryConfig>
+) => {
+  try {
+    const dbUpdates: Record<string, any> = {};
 
+    if (updates.name !== undefined) {
+      dbUpdates.name = updates.name;
+    }
+
+    if (updates.description !== undefined) {
+      dbUpdates.description = updates.description;
+    }
+
+    if (updates.image !== undefined) {
+      dbUpdates.image_url = updates.image;
+    }
+
+    if (updates.isActive !== undefined) {
+      dbUpdates.is_active = updates.isActive;
+    }
+
+    const { error } = await supabase
+      .from('categories')
+      .update(dbUpdates)
+      .eq('slug', id.toLowerCase());
+
+    if (error) {
+      console.error('Failed to update category:', error);
+      throw error;
+    }
+
+    setCategoriesConfig((prev) =>
+      prev.map((c) =>
+        c.id === id ? { ...c, ...updates } : c
+      )
+    );
+  } catch (error) {
+    console.error('Update category failed:', error);
+    throw error;
+  }
+};
   const addGlobalAddon = (addon: Omit<GlobalAddon, 'id'>) => {
     const id = `ga-${Date.now()}`;
     setGlobalAddons((prev) => [...prev, { ...addon, id }]);

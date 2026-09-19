@@ -427,8 +427,6 @@ src={getCategoryImage(
     </button>
   </div>
 </div>
-  </div>
-</div>
 
       {/* 5. POPULAR ITEMS 2-COLUMN GRID (Matches reference image syz.png) */}
       <div id="popular-items-section" className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">

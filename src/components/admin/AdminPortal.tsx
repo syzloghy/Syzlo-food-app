@@ -233,9 +233,18 @@ export const AdminPortal: React.FC = () => {
     );
   }
 
-  if (pinVerified && selectedModule === 'admin') {
-    return <AdminLayout />;
-  }
+if (pinVerified && selectedModule === 'admin') {
+  return (
+    <AdminLayout
+      onBack={() => {
+        setSelectedModule(null);
+        setPinVerified(false);
+        setPin('');
+        setError('');
+      }}
+    />
+  );
+}
 
   if (pinVerified && selectedModule === 'kds') {
     return <KitchenDisplaySystem />;

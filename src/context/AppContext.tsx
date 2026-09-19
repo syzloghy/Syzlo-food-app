@@ -185,8 +185,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
  useEffect(() => {
   const loadMenuFromSupabase = async () => {
-    const { data, error } = await supabase
-      .from('menu_items')
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  console.log('SUPABASE SESSION:', session);
+  console.log('SUPABASE USER:', session?.user?.email);
+
+  const { data, error } = await supabase
+    .from('menu_items')
       .select(`
         id,
         name,

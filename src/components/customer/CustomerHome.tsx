@@ -586,7 +586,7 @@ src={getCategoryImage(
         </div>
       )}
 
-      {/* LOCATION SELECTION MODAL */}
+         {/* LOCATION SELECTION MODAL */}
       {locationModalOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
@@ -599,8 +599,11 @@ src={getCategoryImage(
             <div className="flex items-center justify-between pb-3 border-b border-cream-200">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-[#565F28]" />
-                <h3 className="font-black text-sm text-stone-900">Choose Delivery Location</h3>
+                <h3 className="font-black text-sm text-stone-900">
+                  Choose Delivery Location
+                </h3>
               </div>
+
               <button
                 onClick={() => setLocationModalOpen(false)}
                 className="p-1 rounded-full text-stone-400 hover:text-stone-700"
@@ -610,34 +613,40 @@ src={getCategoryImage(
             </div>
 
             <div className="py-4 space-y-2">
-              {['Guwahati', 'GS Road, Guwahati', 'Zoo Road, Guwahati', 'Beltola, Guwahati', 'Pan Bazar, Guwahati'].map(
-                (loc) => (
-                  <button
-                    key={loc}
-                    onClick={() => {
-                      setSelectedCity(loc);
-                      setLocationModalOpen(false);
-                    }}
-                    className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors ${
-                      selectedCity === loc
-                        ? 'bg-[#565F28] text-white'
-                        : 'bg-cream-100 hover:bg-cream-200 text-stone-800'
-                    }`}
-                  >
-                    <span>{loc}</span>
-                    {selectedCity === loc && <Check className="w-4 h-4" />}
-                  </button>
-                )
-              )}
+              {[
+                'Guwahati',
+                'GS Road, Guwahati',
+                'Zoo Road, Guwahati',
+                'Beltola, Guwahati',
+                'Pan Bazar, Guwahati',
+              ].map((loc) => (
+                <button
+                  key={loc}
+                  onClick={() => {
+                    setSelectedCity(loc);
+                    setLocationModalOpen(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors ${
+                    selectedCity === loc
+                      ? 'bg-[#565F28] text-white'
+                      : 'bg-cream-100 hover:bg-cream-200 text-stone-800'
+                  }`}
+                >
+                  <span>{loc}</span>
+                  {selectedCity === loc && (
+                    <Check className="w-4 h-4" />
+                  )}
+                </button>
+              ))}
             </div>
 
-           <p className="text-[11px] text-stone-400 text-center">
-  Delivering hot Asian baos and wok bowls across Guwahati
-</p>
+            <p className="text-[11px] text-stone-400 text-center">
+              Delivering hot Asian baos and wok bowls across Guwahati
+            </p>
           </div>
         </div>
-      </div>
-    )}
+      )}
+
     </div>
   );
 };

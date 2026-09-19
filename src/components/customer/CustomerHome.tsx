@@ -632,11 +632,10 @@ src={getCategoryImage(
             </div>
 
             <p className="text-[11px] text-stone-400 text-center">
-              Delivering hot Asian baos and wok bowls across Guwahati
-            </p>
+  Delivering hot Asian baos and wok bowls across Guwahati
+</p>
           </div>
         </div>
-      )}
     </div>
   );
 };

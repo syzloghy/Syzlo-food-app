@@ -301,15 +301,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   loadMenuFromSupabase();
 
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange(() => {
-    loadMenuFromSupabase();
-  });
+const {
+  data: { subscription },
+} = supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_IN') {
+    setTimeout(() => {
+      loadMenuFromSupabase();
+    }, 0);
+  }
+});
 
-  return () => {
-    subscription.unsubscribe();
-  };
+return () => {
+  subscription.unsubscribe();
+};
 }, []);
   const [orders, setOrders] = useState<CustomerOrder[]>(INITIAL_ORDERS);
   const [riders, setRiders] = useState<Rider[]>(INITIAL_RIDERS);

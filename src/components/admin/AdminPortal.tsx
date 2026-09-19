@@ -235,22 +235,23 @@ export const AdminPortal: React.FC = () => {
 
 if (pinVerified && selectedModule === 'admin') {
   return (
-  <div className="relative min-h-screen">
-    <button
-      onClick={() => {
-        setSelectedModule(null);
-        setPinVerified(false);
-        setPin('');
-        setError('');
-      }}
-      className="fixed top-4 left-4 z-50 flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-cream-200 shadow-lg text-stone-700 text-sm font-bold hover:bg-cream-100"
-    >
-      ← Back
-    </button>
+    <div className="relative min-h-screen">
+      <button
+        onClick={() => {
+          setSelectedModule(null);
+          setPinVerified(false);
+          setPin('');
+          setError('');
+        }}
+        className="fixed top-4 left-4 z-50 flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-cream-200 shadow-lg text-stone-700 text-sm font-bold hover:bg-cream-100"
+      >
+        ← Back
+      </button>
 
-    <AdminLayout />
-  </div>
-);
+      <AdminLayout />
+    </div>
+  );
+}
 
   if (pinVerified && selectedModule === 'kds') {
     return <KitchenDisplaySystem />;

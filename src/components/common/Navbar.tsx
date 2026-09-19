@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useApp, AppView, CustomerScreen } from '../../context/AppContext';
 import {
   Menu as MenuIcon,
-  X,
+   X,
   MapPin,
+  Mail,
   ChevronRight,
   ShieldCheck,
   ChefHat,

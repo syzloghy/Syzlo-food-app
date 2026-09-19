@@ -17,6 +17,11 @@ import { PointOfSale } from '../pos/PointOfSale';
 type AdminModule = 'admin' | 'kds' | 'pos' | 'display';
 
 export const AdminPortal: React.FC = () => {
+
+  useEffect(() => {
+    window.history.replaceState({}, '', '/admin');
+  }, []);
+
   const [authenticated, setAuthenticated] = useState(false);
   const [selectedModule, setSelectedModule] = useState<AdminModule | null>(null);
   const [pinVerified, setPinVerified] = useState(false);

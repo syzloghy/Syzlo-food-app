@@ -199,7 +199,6 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
   {/* Soft gradient blend into the background on the left edge of image */}
   <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-[#EDE6D6] to-transparent pointer-events-none" />
 </div>
-        </div>
       </div>
 
       {/* 3. SEARCH BAR */}

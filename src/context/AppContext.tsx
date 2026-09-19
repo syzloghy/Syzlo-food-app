@@ -771,6 +771,12 @@ const updateMenuItem = async (
   id: string,
   updates: Partial<MenuItem>
 ) => {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    throw new Error(
+      'This menu item is still using demo data. Please refresh the menu from Supabase before editing it.'
+    );
+  }
+
   try {
     const dbUpdates: Record<string, any> = {};
 

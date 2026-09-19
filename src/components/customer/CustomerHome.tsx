@@ -189,7 +189,11 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
             {/* Right Landscape Culinary Photo */}
             <div className="w-[45%] sm:w-[50%] relative shrink-0 overflow-hidden flex items-center justify-end">
               <img
-                src={currentBanner?.imageUrl || '/src/assets/images/syzlo_hero_landscape_1789711000950.jpg'}
+                <img
+  src={currentBanner?.imageUrl || ''}
+  alt="Delicious Hot Steaming Asian Dish"
+  className="w-full h-full object-cover object-center"
+/>
                 alt="Delicious Hot Steaming Asian Dish"
                 className="w-full h-full object-cover object-center"
               />

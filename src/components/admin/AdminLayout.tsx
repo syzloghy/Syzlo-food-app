@@ -159,15 +159,9 @@ export const AdminLayout: React.FC = () => {
       <div className="max-w-7xl mx-auto space-y-5">
         
         {/* Admin Navigation Bar */}
-       {onBack && (
-  <button
-    onClick={onBack}
-    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-stone-700 text-sm font-bold transition-colors"
-  >
-    <ArrowLeft className="w-4 h-4" />
-    Back
-  </button>
-)}
+
+<div className="bg-white p-4 sm:p-5 rounded-3xl border border-cream-200 shadow-sm flex items-center justify-between gap-4">
+
             {/* Logo from Brand Config */}
             <div className="w-10 h-10 rounded-2xl bg-olive-600 text-white flex items-center justify-center font-black shadow-md overflow-hidden shrink-0">
               {brandConfig.logoUrl ? (
@@ -190,7 +184,6 @@ export const AdminLayout: React.FC = () => {
                 {currentItem?.label || 'Central Management System'}
               </p>
             </div>
-          </div>
 
           {/* Action: Open List Menu Bar */}
           <div className="flex items-center gap-2">

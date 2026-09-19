@@ -200,6 +200,7 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
 </div>
           </div>
         </div>
+      </div>
 
       {/* 3. SEARCH BAR */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4">

@@ -106,8 +106,7 @@ interface AppContextType {
   // Demo staff access gate. Not production authentication.
   isStaffAuthenticated: boolean;
   setIsStaffAuthenticated: (auth: boolean) => void;
-  verifyStaffPin: (phone: string, pin: string) => boolean;
-
+verifyStaffPin: (email: string, password: string) => Promise<boolean>;
   // Dynamic Content & Settings
   heroBanners: HeroBanner[];
   addHeroBanner: (banner: Omit<HeroBanner, 'id'>) => void;

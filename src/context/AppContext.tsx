@@ -762,9 +762,12 @@ const addMenuItem = async (item: Omit<MenuItem, 'id'>) => {
 
     setMenuItems((prev) => [newItem, ...prev]);
 } catch (error) {
-  console.error('Update menu item failed:', error);
+  console.error('Add menu item failed:', error);
   throw error;
 }
+};
+
+const updateMenuItem = async (
 
 const updateMenuItem = async (
   id: string,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { supabase } from '../../lib/supabase';
 import { HeroBanner, FoodCategory } from '../../types';
 import {
   Plus,
@@ -38,18 +39,64 @@ export const HeroBannersManagement: React.FC = () => {
     { label: 'Deep Forest Umami', value: 'from-[#1F2B1D] via-[#283825] to-[#172115]' },
   ];
 
-  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setImageUrl(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+ const handleImageFileUpload = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = e.target.files?.[0];
+
+  if (!file) return;
+
+  try {
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.');
+      return;
     }
-  };
+
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+
+    const fileName = `hero-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}.${fileExtension}`;
+
+    const filePath = `hero-banners/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('menu-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Hero banner image upload failed:', uploadError);
+      alert('Image upload failed. Please try again.');
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from('menu-images')
+      .getPublicUrl(filePath);
+
+    if (!data?.publicUrl) {
+      alert('Could not get the uploaded image URL.');
+      return;
+    }
+
+    setImageUrl(data.publicUrl);
+
+    console.log(
+      'Hero banner image uploaded:',
+      data.publicUrl
+    );
+  } catch (error) {
+    console.error(
+      'Hero banner image upload failed:',
+      error
+    );
+
+    alert('Image upload failed. Please try again.');
+  }
+};
 
   const openCreateModal = () => {
     setEditingBannerId(null);

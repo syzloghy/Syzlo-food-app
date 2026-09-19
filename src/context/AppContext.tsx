@@ -699,28 +699,184 @@ const verifyStaffPin = async (
     );
   };
 
-  // Menu updates
-  const addMenuItem = (item: Omit<MenuItem, 'id'>) => {
-    const newId = `item-${Date.now()}`;
-    setMenuItems((prev) => [{ ...item, id: newId }, ...prev]);
-  };
+ // Menu updates
+const getCategoryId = async (category: FoodCategory) => {
+  const slug = category.toLowerCase();
 
-  const updateMenuItem = (id: string, updates: Partial<MenuItem>) => {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('slug', slug)
+    .single();
+
+  if (error) {
+    console.error('Failed to find category:', error);
+    throw error;
+  }
+
+  return data.id;
+};
+
+const createMenuSlug = (name: string) => {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+const addMenuItem = async (item: Omit<MenuItem, 'id'>) => {
+  try {
+    const categoryId = await getCategoryId(item.category);
+
+    const { data, error } = await supabase
+      .from('menu_items')
+      .insert({
+        name: item.name,
+        slug: createMenuSlug(item.name),
+        description: item.description || '',
+        image_url: item.image || '',
+        price: item.price,
+        is_veg: item.isVeg,
+        is_available: item.isAvailable,
+        is_featured: Boolean(item.isBestseller),
+        category_id: categoryId,
+        sort_order: 999,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Failed to add menu item:', error);
+      throw error;
+    }
+
+    const newItem: MenuItem = {
+      ...item,
+      id: data.id,
+      image: data.image_url || '',
+      isAvailable: Boolean(data.is_available),
+      isBestseller: Boolean(data.is_featured),
+      addOns: [],
+    };
+
+    setMenuItems((prev) => [newItem, ...prev]);
+  } catch (error) {
+    console.error('Add menu item failed:', error);
+  }
+};
+
+const updateMenuItem = async (
+  id: string,
+  updates: Partial<MenuItem>
+) => {
+  try {
+    const dbUpdates: Record<string, any> = {};
+
+    if (updates.name !== undefined) {
+      dbUpdates.name = updates.name;
+      dbUpdates.slug = createMenuSlug(updates.name);
+    }
+
+    if (updates.description !== undefined) {
+      dbUpdates.description = updates.description;
+    }
+
+    if (updates.price !== undefined) {
+      dbUpdates.price = updates.price;
+    }
+
+    if (updates.image !== undefined) {
+      dbUpdates.image_url = updates.image;
+    }
+
+    if (updates.isVeg !== undefined) {
+      dbUpdates.is_veg = updates.isVeg;
+    }
+
+    if (updates.isAvailable !== undefined) {
+      dbUpdates.is_available = updates.isAvailable;
+    }
+
+    if (updates.isBestseller !== undefined) {
+      dbUpdates.is_featured = updates.isBestseller;
+    }
+
+    if (updates.category !== undefined) {
+      dbUpdates.category_id = await getCategoryId(updates.category);
+    }
+
+    const { error } = await supabase
+      .from('menu_items')
+      .update(dbUpdates)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to update menu item:', error);
+      throw error;
+    }
+
     setMenuItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
+      prev.map((item) =>
+        item.id === id ? { ...item, ...updates } : item
+      )
     );
-  };
+  } catch (error) {
+    console.error('Update menu item failed:', error);
+  }
+};
 
-  const toggleItemAvailability = (id: string) => {
+const toggleItemAvailability = async (id: string) => {
+  try {
+    const currentItem = menuItems.find((item) => item.id === id);
+
+    if (!currentItem) return;
+
+    const newAvailability = !currentItem.isAvailable;
+
+    const { error } = await supabase
+      .from('menu_items')
+      .update({
+        is_available: newAvailability,
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to update availability:', error);
+      throw error;
+    }
+
     setMenuItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, isAvailable: !item.isAvailable } : item))
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, isAvailable: newAvailability }
+          : item
+      )
     );
-  };
+  } catch (error) {
+    console.error('Toggle availability failed:', error);
+  }
+};
 
-  const deleteMenuItem = (id: string) => {
-    setMenuItems((prev) => prev.filter((item) => item.id !== id));
-  };
+const deleteMenuItem = async (id: string) => {
+  try {
+    const { error } = await supabase
+      .from('menu_items')
+      .delete()
+      .eq('id', id);
 
+    if (error) {
+      console.error('Failed to delete menu item:', error);
+      throw error;
+    }
+
+    setMenuItems((prev) =>
+      prev.filter((item) => item.id !== id)
+    );
+  } catch (error) {
+    console.error('Delete menu item failed:', error);
+  }
+};
   // Coupon updates
   const addCoupon = (coupon: Coupon) => {
     setCoupons((prev) => [coupon, ...prev]);

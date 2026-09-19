@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { supabase } from '../../lib/supabase';
 import { CategoryConfig } from '../../types';
 import {
   FolderTree,
@@ -21,18 +22,54 @@ export const CategoryManagement: React.FC = () => {
   const [image, setImage] = useState('');
   const [isActive, setIsActive] = useState(true);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setImage(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+ const handleFileUpload = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = e.target.files?.[0];
+
+  if (!file) return;
+
+  try {
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+
+    const categorySlug =
+      editingCategory?.id?.toLowerCase() || 'category';
+
+    const filePath = `categories/${categorySlug}-${Date.now()}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('menu-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Category image upload failed:', uploadError);
+      alert(uploadError.message);
+      return;
     }
-  };
+
+    const { data } = supabase.storage
+      .from('menu-images')
+      .getPublicUrl(filePath);
+
+    if (!data?.publicUrl) {
+      alert('Image uploaded but public URL could not be created.');
+      return;
+    }
+
+    setImage(data.publicUrl);
+
+    console.log('Category image uploaded:', data.publicUrl);
+  } catch (error: any) {
+    console.error('Category image upload error:', error);
+    alert(
+      error?.message ||
+      'Failed to upload category image.'
+    );
+  }
+};
 
   const openEditModal = (cat: CategoryConfig) => {
     setEditingCategory(cat);

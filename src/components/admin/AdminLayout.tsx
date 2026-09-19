@@ -14,6 +14,7 @@ import { StaffRiderManagement } from './StaffRiderManagement';
 import { ReportsAnalytics } from './ReportsAnalytics';
 import {
   LayoutDashboard,
+   ArrowLeft,
   ShoppingBag,
   Utensils,
   Layers,
@@ -45,7 +46,11 @@ export type AdminTabId =
   | 'staff'
   | 'reports';
 
-export const AdminLayout: React.FC = () => {
+interface AdminLayoutProps {
+  onBack?: () => void;
+}
+
+export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBack }) => {
   const { brandConfig, orders } = useApp();
   const [activeTab, setActiveTab] = useState<AdminTabId>('overview');
   const [isMenuBarOpen, setIsMenuBarOpen] = useState(false);
@@ -157,9 +162,17 @@ export const AdminLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FAF6EF] p-3 sm:p-6 pb-28">
       <div className="max-w-7xl mx-auto space-y-5">
+        
         {/* Admin Navigation Bar */}
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-cream-200 shadow-xs flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+       {onBack && (
+  <button
+    onClick={onBack}
+    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-stone-700 text-sm font-bold transition-colors"
+  >
+    <ArrowLeft className="w-4 h-4" />
+    Back
+  </button>
+)}
             {/* Logo from Brand Config */}
             <div className="w-10 h-10 rounded-2xl bg-olive-600 text-white flex items-center justify-center font-black shadow-md overflow-hidden shrink-0">
               {brandConfig.logoUrl ? (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -216,11 +216,12 @@ export const AdminPortal: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => {
-                  setSelectedModule(null);
-                  setError('');
-                  setPin('');
-                }}
+               onClick={() => {
+  setSelectedModule(null);
+  setPinVerified(false);
+  setError('');
+  setPin('');
+}}
                 className="w-full py-3 rounded-xl bg-cream-100 hover:bg-cream-200 text-stone-700 font-bold"
               >
                 Back

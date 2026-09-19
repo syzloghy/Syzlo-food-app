@@ -124,12 +124,12 @@ export const HeroBannersManagement: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveBanner = (e: React.FormEvent) => {
+  const handleSaveBanner = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !imageUrl.trim()) return;
 
     if (editingBannerId) {
-      updateHeroBanner(editingBannerId, {
+      await updateHeroBanner(editingBannerId, {
         badge,
         title,
         subtitle,
@@ -140,7 +140,7 @@ export const HeroBannersManagement: React.FC = () => {
         bgColor,
       });
     } else {
-      addHeroBanner({
+      await addHeroBanner({
         badge,
         title,
         subtitle,

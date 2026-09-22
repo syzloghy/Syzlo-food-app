@@ -10,7 +10,7 @@ import { CouponsManagement } from './CouponsManagement';
 import { PaymentGatewaysSettings } from './PaymentGatewaysSettings';
 import { OsmLocationSettings } from './OsmLocationSettings';
 import { BrandLogoSettings } from './BrandLogoSettings';
-import { BusinessInformationSettings } from './BusinessInformationSettings';
+import BusinessInformationSettings from './BusinessInformationSettings';
 import { StaffRiderManagement } from './StaffRiderManagement';
 import { ReportsAnalytics } from './ReportsAnalytics';
 import {
@@ -136,10 +136,10 @@ export const AdminLayout: React.FC = () => {
           desc: 'Upload brand logo, FSSAI & GSTIN info',
         },
         {
-  id: 'business',
-  label: 'Business Information',
-  icon: <Store className="w-4 h-4 text-olive-600" />,
-  desc: 'Business details, contact, FSSAI & delivery settings',
+          id: 'business',
+          label: 'Business Information',
+          icon: <Store className="w-4 h-4 text-olive-600" />,
+          desc: 'Business details, contact, FSSAI & delivery settings',
 },
         {
           id: 'staff',
@@ -218,9 +218,9 @@ export const AdminLayout: React.FC = () => {
             { id: 'gateways', label: 'Payment Gateways', icon: <CreditCard className="w-3.5 h-3.5" /> },
             { id: 'map-osm', label: 'OSM Map', icon: <Globe className="w-3.5 h-3.5" /> },
            { id: 'brand', label: 'Brand & Logo', icon: <Store className="w-3.5 h-3.5" /> },
-{ id: 'business', label: 'Business Info', icon: <Store className="w-3.5 h-3.5" /> },
-{ id: 'staff', label: 'Staff & Riders', icon: <Users className="w-3.5 h-3.5" /> },
-{ id: 'reports', label: 'Reports', icon: <BarChart3 className="w-3.5 h-3.5" /> },
+          { id: 'business', label: 'Business Info', icon: <Store className="w-3.5 h-3.5" /> },
+          { id: 'staff', label: 'Staff & Riders', icon: <Users className="w-3.5 h-3.5" /> },
+          { id: 'reports', label: 'Reports', icon: <BarChart3 className="w-3.5 h-3.5" /> },
           ].map((tab) => {
             const active = activeTab === tab.id;
             return (
@@ -252,11 +252,11 @@ export const AdminLayout: React.FC = () => {
           {activeTab === 'addons' && <AddonsManagement />}
           {activeTab === 'coupons' && <CouponsManagement />}
           {activeTab === 'gateways' && <PaymentGatewaysSettings />}
-{activeTab === 'map-osm' && <OsmLocationSettings />}
-{activeTab === 'brand' && <BrandLogoSettings />}
-{activeTab === 'business' && <BusinessInformationSettings />}
-{activeTab === 'staff' && <StaffRiderManagement />}
-{activeTab === 'reports' && <ReportsAnalytics />}
+          {activeTab === 'map-osm' && <OsmLocationSettings />}
+          {activeTab === 'brand' && <BrandLogoSettings />}
+          {activeTab === 'business' && <BusinessInformationSettings />}
+          {activeTab === 'staff' && <StaffRiderManagement />}
+          {activeTab === 'reports' && <ReportsAnalytics />}
         </div>
       </div>
 

@@ -109,7 +109,7 @@ const [pickupMode, setPickupMode] = useState<'TAKEAWAY' | 'DINE-IN' | ''>('');
       setGatewayMessage('Processing Cash on Delivery booking...');
     }
 
-    setTimeout(() => {
+    setTimeout(async () => {
       setIsProcessing(false);
       setGatewayMessage(null);
 
@@ -131,7 +131,7 @@ const [pickupMode, setPickupMode] = useState<'TAKEAWAY' | 'DINE-IN' | ''>('');
       else if (selectedGatewayId === 'RAZORPAY') paymentMethod = 'RAZORPAY';
       else if (selectedGatewayId === 'CASHFREE') paymentMethod = 'CASHFREE';
 
-      placeCustomerOrder({
+      await placeCustomerOrder({
         source: 'ONLINE',
         orderType,
         customerName,

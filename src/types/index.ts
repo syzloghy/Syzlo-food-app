@@ -186,19 +186,28 @@ export type Order = CustomerOrder;
 
 export interface Rider {
   id: string;
+  userId?: string;
   name: string;
   phone: string;
+
+  vehicle: string;
+  vehicleNumber?: string;
+
   status: 'ONLINE' | 'OFFLINE' | 'BUSY';
   isAvailable?: boolean;
+
   currentOrderId?: string;
+
+  // Kept for compatibility with existing code.
+  // Live rider tracking is NOT used in the new system.
   location: {
     lat: number;
     lng: number;
   };
+
   completedDeliveries: number;
   totalDeliveries?: number;
   rating: number;
-  vehicle: string;
   batteryLevel?: number;
 }
 

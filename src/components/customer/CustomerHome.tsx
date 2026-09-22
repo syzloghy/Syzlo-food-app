@@ -81,9 +81,11 @@ export const CustomerHome: React.FC = () => {
   });
 
   const popularItems = filteredItems.filter((item) => item.isBestseller);
-  const remainingItems = filteredItems.filter((item) => !item.isBestseller);
+const remainingItems = filteredItems.filter((item) => !item.isBestseller);
 
- const getCategoryImage = (categoryId: string, fallback: string) =>
+const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+const getCategoryImage = (categoryId: string, fallback: string) =>
   categoriesConfig.find((category) => category.id === categoryId)?.image || fallback;
 
 const handleCategoryClick = (category: FoodCategory) => {

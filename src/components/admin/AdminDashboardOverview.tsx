@@ -272,157 +272,317 @@ export const AdminDashboardOverview: React.FC<
 
       </div>
 
-      {/* =====================================================
-          HERO / STATUS / ACTIONS
-      ====================================================== */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3">
+    {/* =====================================================
+    HERO / STATUS / ACTIONS
+====================================================== */}
+<div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
 
-        {/* HERO */}
-        <section className="xl:col-span-7 min-h-[215px] rounded-xl overflow-hidden relative bg-[#27291E]">
+  {/* =====================================================
+      HERO
+  ====================================================== */}
+  <section
+    className="
+      xl:col-span-7
+      min-h-[245px]
+      rounded-2xl
+      overflow-hidden
+      relative
+      bg-[#2D3021]
+      border border-[#3A3D2A]
+      shadow-[0_3px_18px_rgba(40,35,20,0.08)]
+    "
+  >
 
-          {banner?.imageUrl && (
-            <img
-              src={banner.imageUrl}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover opacity-60"
-            />
-          )}
+    {banner?.imageUrl && (
+      <img
+        src={banner.imageUrl}
+        alt=""
+        className="
+          absolute
+          inset-0
+          w-full
+          h-full
+          object-cover
+          opacity-[0.62]
+        "
+      />
+    )}
 
-          <div className="absolute inset-0 bg-gradient-to-r from-[#22241A] via-[#22241A]/80 to-transparent" />
+    {/* DARK OVERLAY */}
+    <div
+      className="
+        absolute
+        inset-0
+        bg-gradient-to-r
+        from-[#202319]
+        via-[#202319]/85
+        to-[#202319]/10
+      "
+    />
 
-          <div className="relative z-10 p-7 h-full flex flex-col justify-center">
+    {/* CONTENT */}
+    <div
+      className="
+        relative
+        z-10
+        p-7
+        sm:p-8
+        h-full
+        flex
+        flex-col
+        justify-center
+      "
+    >
 
-            <p className="text-[10px] uppercase tracking-[0.25em] text-[#EED7B5] font-bold">
-              {banner?.badge ||
-                'THE BAO MAKERS'}
-            </p>
+      <p
+        className="
+          text-[9px]
+          uppercase
+          tracking-[0.28em]
+          text-[#EED7B5]
+          font-bold
+        "
+      >
+        {banner?.badge || 'THE BAO MAKERS'}
+      </p>
 
-            <h2 className="mt-3 text-3xl sm:text-4xl font-serif font-bold text-white leading-tight max-w-[480px]">
-              {banner?.title ||
-                'Handcrafted Comfort, Always.'}
-            </h2>
+      <h2
+        className="
+          mt-3
+          text-[32px]
+          sm:text-[38px]
+          lg:text-[42px]
+          font-serif
+          font-bold
+          text-white
+          leading-[1.05]
+          tracking-tight
+          max-w-[500px]
+        "
+      >
+        {banner?.title ||
+          'Handcrafted Comfort, Always.'}
+      </h2>
 
-            <p className="mt-2 text-sm text-white/80 max-w-[420px]">
-              {banner?.subtitle ||
-                'Fresh buns. Real ingredients. Happier people.'}
-            </p>
+      <p
+        className="
+          mt-3
+          text-[12px]
+          sm:text-[13px]
+          text-white/75
+          max-w-[410px]
+          leading-relaxed
+        "
+      >
+        {banner?.subtitle ||
+          'Fresh buns. Real ingredients. Happier people.'}
+      </p>
 
-            <button
-              type="button"
-              onClick={() =>
-                onNavigateTab('orders')
-              }
-              className="mt-5 w-fit px-4 py-2.5 rounded-lg bg-[#565F28] hover:bg-[#48501F] text-white text-xs font-bold flex items-center gap-2"
-            >
-              View Today's Orders
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+      <button
+        type="button"
+        onClick={() =>
+          onNavigateTab('orders')
+        }
+        className="
+          mt-6
+          w-fit
+          h-9
+          px-4
+          rounded-lg
+          bg-[#565F28]
+          hover:bg-[#48501F]
+          text-white
+          text-[10px]
+          font-bold
+          flex
+          items-center
+          gap-2
+          transition-colors
+        "
+      >
+        View Today's Orders
 
-          </div>
+        <ArrowRight
+          className="w-3.5 h-3.5"
+          strokeWidth={1.8}
+        />
+      </button>
 
-        </section>
+    </div>
 
-        {/* OUTLET STATUS */}
-        <section className="xl:col-span-2 bg-white rounded-xl border border-[#E6DED1] p-4">
+  </section>
 
-          <div className="flex items-center justify-between">
 
-            <h3 className="text-sm font-black">
-              Outlet Status
-            </h3>
+  {/* =====================================================
+      OUTLET STATUS
+  ====================================================== */}
+  <section
+    className="
+      xl:col-span-2
+      bg-white
+      rounded-2xl
+      border border-[#E4DDD0]
+      p-5
+      shadow-[0_2px_12px_rgba(60,50,30,0.03)]
+    "
+  >
 
-            <span className="px-2.5 py-1 rounded-full bg-[#DDEBD4] text-[#35733B] text-[10px] font-black">
-              Pre-launch
-            </span>
+    <div className="flex items-start justify-between gap-2">
 
-          </div>
+      <div>
 
-          <div className="mt-5 space-y-4">
+        <p className="text-[9px] uppercase tracking-[0.15em] text-[#969080] font-bold">
+          Outlet
+        </p>
 
-            <Status
-              label="Accepting Orders"
-              value="No"
-            />
-
-            <Status
-              label="Kitchen Online"
-              value="Yes"
-            />
-
-            <Status
-              label="POS Active"
-              value="Yes"
-            />
-
-            <Status
-              label="Online Ordering"
-              value="Ready"
-            />
-
-          </div>
-
-        </section>
-
-        {/* QUICK ACTIONS */}
-        <section className="xl:col-span-3 bg-white rounded-xl border border-[#E6DED1] p-4">
-
-          <h3 className="text-sm font-black">
-            Quick Actions
-          </h3>
-
-          <div className="grid grid-cols-2 gap-2.5 mt-4">
-
-            <Action
-              icon={PlusIcon}
-              label={
-                <>
-                  New Order
-                  <br />
-                  (POS)
-                </>
-              }
-              onClick={() =>
-                onNavigateTab('orders')
-              }
-            />
-
-            <Action
-              icon={Utensils}
-              label={
-                <>
-                  Kitchen Display
-                  <br />
-                  (KDS)
-                </>
-              }
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent(
-                    'syzlo-open-kds'
-                  )
-                )
-              }
-            />
-
-            <Action
-              icon={ShoppingBag}
-              label="View Menu"
-              onClick={() =>
-                onNavigateTab('menu')
-              }
-            />
-
-            <Action
-              icon={Printer}
-              label="Print Last Bill"
-              onClick={() => {}}
-            />
-
-          </div>
-
-        </section>
+        <h3 className="mt-1 text-[15px] font-black">
+          Status
+        </h3>
 
       </div>
+
+      <span
+        className="
+          inline-flex
+          items-center
+          gap-1.5
+          px-2.5
+          py-1
+          rounded-full
+          bg-[#F0E9D9]
+          text-[#6C623F]
+          text-[9px]
+          font-black
+        "
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-[#9B8B4A]" />
+        Pre-launch
+      </span>
+
+    </div>
+
+
+    <div className="mt-6 space-y-4">
+
+      <Status
+        label="Accepting Orders"
+        value="No"
+      />
+
+      <Status
+        label="Kitchen Online"
+        value="Yes"
+      />
+
+      <Status
+        label="POS Active"
+        value="Yes"
+      />
+
+      <Status
+        label="Online Ordering"
+        value="Ready"
+      />
+
+    </div>
+
+
+    <div className="mt-5 pt-4 border-t border-[#F0EBE3]">
+
+      <p className="text-[9px] text-[#9A958B] leading-relaxed">
+        Outlet status will update automatically
+        when operations begin.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  {/* =====================================================
+      QUICK ACTIONS
+  ====================================================== */}
+  <section
+    className="
+      xl:col-span-3
+      bg-white
+      rounded-2xl
+      border border-[#E4DDD0]
+      p-5
+      shadow-[0_2px_12px_rgba(60,50,30,0.03)]
+    "
+  >
+
+    <div className="flex items-center justify-between">
+
+      <div>
+
+        <p className="text-[9px] uppercase tracking-[0.15em] text-[#969080] font-bold">
+          Shortcuts
+        </p>
+
+        <h3 className="mt-1 text-[15px] font-black">
+          Quick Actions
+        </h3>
+
+      </div>
+
+    </div>
+
+
+    <div className="grid grid-cols-2 gap-2.5 mt-5">
+
+      <Action
+        icon={PlusIcon}
+        label={
+          <>
+            New Order
+            <br />
+            (POS)
+          </>
+        }
+        onClick={() =>
+          onNavigateTab('orders')
+        }
+      />
+
+      <Action
+        icon={Utensils}
+        label={
+          <>
+            Kitchen Display
+            <br />
+            (KDS)
+          </>
+        }
+        onClick={() =>
+          window.dispatchEvent(
+            new CustomEvent(
+              'syzlo-open-kds'
+            )
+          )
+        }
+      />
+
+      <Action
+        icon={ShoppingBag}
+        label="View Menu"
+        onClick={() =>
+          onNavigateTab('menu')
+        }
+      />
+
+      <Action
+        icon={Printer}
+        label="Print Last Bill"
+        onClick={() => {}}
+      />
+
+    </div>
+
+  </section>
+
+</div>
 
       {/* =====================================================
           LIVE ORDERS + GLANCE
@@ -916,25 +1076,52 @@ const Kpi: React.FC<{
 const Status: React.FC<{
   label: string;
   value: string;
-}> = ({ label, value }) => (
-  <div className="flex items-center justify-between">
+}> = ({ label, value }) => {
+  const isReady =
+    value === 'Yes';
 
-    <div className="flex items-center gap-2">
+  return (
+    <div className="flex items-center justify-between gap-3">
 
-      <span className="w-2.5 h-2.5 rounded-full bg-[#24913A]" />
+      <div className="flex items-center gap-2.5 min-w-0">
 
-      <span className="text-xs text-stone-600">
-        {label}
+        <span
+          className={`
+            w-2 h-2
+            rounded-full
+            shrink-0
+            ${
+              isReady
+                ? 'bg-[#4D8A43]'
+                : 'bg-[#B6A77A]'
+            }
+          `}
+        />
+
+        <span className="text-[10px] text-[#67645C] truncate">
+          {label}
+        </span>
+
+      </div>
+
+      <span
+        className={`
+          text-[10px]
+          font-bold
+          shrink-0
+          ${
+            isReady
+              ? 'text-[#47753D]'
+              : 'text-[#807656]'
+          }
+        `}
+      >
+        {value}
       </span>
 
     </div>
-
-    <span className="text-xs font-bold">
-      {value}
-    </span>
-
-  </div>
-);
+  );
+};
 
 const Action: React.FC<{
   icon: React.ElementType;
@@ -948,13 +1135,53 @@ const Action: React.FC<{
   <button
     type="button"
     onClick={onClick}
-    className="h-[74px] rounded-xl bg-[#F3F5E8] hover:bg-[#E9ECD9] flex flex-col items-center justify-center gap-2 transition-colors"
+    className="
+      h-[82px]
+      rounded-xl
+      bg-[#F3F5E8]
+      border border-[#E7E9D8]
+      hover:bg-[#E8EBD8]
+      hover:border-[#D9DEC0]
+      flex
+      flex-col
+      items-center
+      justify-center
+      gap-2
+      transition-all
+      duration-150
+    "
   >
-    <Icon className="w-5 h-5 text-[#20221A]" />
 
-    <span className="text-[10px] font-bold text-center leading-tight">
+    <div
+      className="
+        w-8
+        h-8
+        rounded-lg
+        bg-white
+        flex
+        items-center
+        justify-center
+        shadow-[0_1px_3px_rgba(50,50,20,0.05)]
+      "
+    >
+      <Icon
+        className="w-[15px] h-[15px] text-[#565F28]"
+        strokeWidth={1.8}
+      />
+    </div>
+
+    <span
+      className="
+        text-[9px]
+        font-bold
+        text-[#34362D]
+        text-center
+        leading-tight
+      "
+    >
       {label}
     </span>
+
   </button>
 );
 

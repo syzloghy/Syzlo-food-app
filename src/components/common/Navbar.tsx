@@ -309,7 +309,8 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
         </div>
-    
+      </div>
+  
 
       {/* Footer */}
       <div className="px-5 py-4 bg-white border-t border-[#E8DED0]">
@@ -319,4 +320,4 @@ export const Navbar: React.FC = () => {
       </div>
     </div>
   </div>
-)}
+)};

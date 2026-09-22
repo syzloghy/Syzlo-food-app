@@ -151,7 +151,9 @@ export interface OrderStatusLog {
 }
 
 export interface CustomerOrder {
-  id: string; // e.g. SYZ/09/18/01 or 1801
+  id: string; // e.g. SYZ/09/1801 or 1801
+  supabaseOrderId?: string; // Supabase orders.id UUID
+
   source: 'ONLINE' | 'POS';
   orderType: OrderType;
   items: CartItem[];

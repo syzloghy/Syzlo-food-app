@@ -5,19 +5,15 @@ import {
   ArrowRight,
   Banknote,
   Bike,
-  ChevronRight,
-  CircleCheck,
-  Clock3,
+  Box,
   CreditCard,
   IndianRupee,
-  LayoutDashboard,
+  MapPin,
   Package,
-  Plus,
   Printer,
-  ReceiptText,
-  Search,
   ShoppingBag,
   Tag,
+  TrendingUp,
   Truck,
   Utensils,
   Users,
@@ -30,99 +26,43 @@ interface AdminDashboardOverviewProps {
   ) => void;
 }
 
-const formatCurrency = (value: number) =>
+const money = (value: number) =>
   `₹${Math.round(value).toLocaleString('en-IN')}`;
 
-const isToday = (dateString?: string) => {
-  if (!dateString) return false;
+const today = (value?: string) => {
+  if (!value) return false;
 
-  const date = new Date(dateString);
+  const d = new Date(value);
   const now = new Date();
 
   return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
   );
-};
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'placed':
-    case 'ORDER_PLACED':
-      return 'New';
-
-    case 'accepted':
-    case 'RESTAURANT_ACCEPTED':
-    case 'preparing':
-    case 'PREPARING':
-      return 'Preparing';
-
-    case 'ready':
-    case 'READY':
-      return 'Ready';
-
-    case 'rider_assigned':
-    case 'RIDER_ASSIGNED':
-    case 'picked_up':
-    case 'PICKED_UP':
-    case 'out_for_delivery':
-    case 'OUT_FOR_DELIVERY':
-      return 'Out for Delivery';
-
-    case 'delivered':
-    case 'DELIVERED':
-    case 'completed':
-    case 'COMPLETED':
-      return 'Delivered';
-
-    case 'cancelled':
-    case 'CANCELLED':
-      return 'Cancelled';
-
-    default:
-      return status;
-  }
-};
-
-const getOrderTypeLabel = (orderType: string) => {
-  switch (orderType) {
-    case 'DELIVERY':
-    case 'delivery':
-      return 'Delivery';
-
-    case 'PICKUP':
-    case 'pickup':
-      return 'Pickup';
-
-    case 'DINE-IN':
-    case 'dine_in':
-      return 'Dine-in';
-
-    default:
-      return orderType;
-  }
 };
 
 export const AdminDashboardOverview: React.FC<
   AdminDashboardOverviewProps
 > = ({ onNavigateTab }) => {
+
   const {
     orders,
     riders,
-    staff,
-    setAdminScreen,
+    heroBanners,
+    brandConfig,
   } = useApp();
 
   /*
-   * Only orders connected to Supabase are treated as real orders.
-   * This prevents INITIAL_ORDERS/demo data from appearing as
-   * real business activity before SYZLO launches.
+   * IMPORTANT:
+   * Demo INITIAL_ORDERS are not business transactions.
+   * Only orders successfully linked to Supabase are counted.
    */
   const realOrders = useMemo(
     () =>
       orders.filter(
-        (order) => Boolean(order.supabaseOrderId)
+        (order) =>
+          Boolean(order.supabaseOrderId)
       ),
     [orders]
   );
@@ -130,59 +70,44 @@ export const AdminDashboardOverview: React.FC<
   const todayOrders = useMemo(
     () =>
       realOrders.filter((order) =>
-        isToday(order.createdAt)
+        today(order.createdAt)
       ),
     [realOrders]
   );
 
-  const activeSalesOrders = useMemo(
-    () =>
-      todayOrders.filter(
-        (order) =>
-          order.status !== 'CANCELLED' &&
-          order.status !== 'cancelled'
-      ),
-    [todayOrders]
+  const salesOrders = todayOrders.filter(
+    (order) =>
+      order.status !== 'CANCELLED' &&
+      order.status !== 'cancelled'
   );
 
-  const todaySales = useMemo(
-    () =>
-      activeSalesOrders.reduce(
-        (sum, order) =>
-          sum + Number(order.grandTotal || 0),
+  const revenue = salesOrders.reduce(
+    (sum, order) =>
+      sum + Number(order.grandTotal || 0),
+    0
+  );
+
+  const discounts = todayOrders.reduce(
+    (sum, order) =>
+      sum + Number(order.discount || 0),
+    0
+  );
+
+  const itemsSold = salesOrders.reduce(
+    (sum, order) =>
+      sum +
+      order.items.reduce(
+        (itemSum, item) =>
+          itemSum +
+          Number(item.quantity || 0),
         0
       ),
-    [activeSalesOrders]
+    0
   );
 
-  const todayDiscounts = useMemo(
-    () =>
-      todayOrders.reduce(
-        (sum, order) =>
-          sum + Number(order.discount || 0),
-        0
-      ),
-    [todayOrders]
-  );
-
-  const itemsSold = useMemo(
-    () =>
-      activeSalesOrders.reduce(
-        (sum, order) =>
-          sum +
-          order.items.reduce(
-            (itemSum, item) =>
-              itemSum + Number(item.quantity || 0),
-            0
-          ),
-        0
-      ),
-    [activeSalesOrders]
-  );
-
-  const averageOrderValue =
-    activeSalesOrders.length > 0
-      ? todaySales / activeSalesOrders.length
+  const aov =
+    salesOrders.length > 0
+      ? revenue / salesOrders.length
       : 0;
 
   const activeRiders = riders.filter(
@@ -193,74 +118,54 @@ export const AdminDashboardOverview: React.FC<
   );
 
   const newOrders = todayOrders.filter(
-    (order) =>
-      order.status === 'placed' ||
-      order.status === 'ORDER_PLACED'
-  );
+    (o) =>
+      o.status === 'placed' ||
+      o.status === 'ORDER_PLACED'
+  ).length;
 
   const preparingOrders = todayOrders.filter(
-    (order) =>
-      order.status === 'accepted' ||
-      order.status === 'RESTAURANT_ACCEPTED' ||
-      order.status === 'preparing' ||
-      order.status === 'PREPARING'
-  );
+    (o) =>
+      o.status === 'accepted' ||
+      o.status === 'RESTAURANT_ACCEPTED' ||
+      o.status === 'preparing' ||
+      o.status === 'PREPARING'
+  ).length;
 
   const readyOrders = todayOrders.filter(
-    (order) =>
-      order.status === 'ready' ||
-      order.status === 'READY'
-  );
+    (o) =>
+      o.status === 'ready' ||
+      o.status === 'READY'
+  ).length;
 
-  const deliveryOrders = todayOrders.filter(
-    (order) =>
-      order.status === 'rider_assigned' ||
-      order.status === 'RIDER_ASSIGNED' ||
-      order.status === 'picked_up' ||
-      order.status === 'PICKED_UP' ||
-      order.status === 'out_for_delivery' ||
-      order.status === 'OUT_FOR_DELIVERY'
-  );
+  const outForDelivery = todayOrders.filter(
+    (o) =>
+      o.status === 'rider_assigned' ||
+      o.status === 'RIDER_ASSIGNED' ||
+      o.status === 'picked_up' ||
+      o.status === 'PICKED_UP' ||
+      o.status === 'out_for_delivery' ||
+      o.status === 'OUT_FOR_DELIVERY'
+  ).length;
 
   const deliveryCount = todayOrders.filter(
-    (order) =>
-      order.orderType === 'DELIVERY' ||
-      order.orderType === 'delivery'
+    (o) =>
+      o.orderType === 'DELIVERY' ||
+      o.orderType === 'delivery'
   ).length;
 
   const pickupCount = todayOrders.filter(
-    (order) =>
-      order.orderType === 'PICKUP' ||
-      order.orderType === 'pickup'
+    (o) =>
+      o.orderType === 'PICKUP' ||
+      o.orderType === 'pickup'
   ).length;
 
   const dineInCount = todayOrders.filter(
-    (order) =>
-      order.orderType === 'DINE-IN' ||
-      order.orderType === 'dine_in'
+    (o) =>
+      o.orderType === 'DINE-IN' ||
+      o.orderType === 'dine_in'
   ).length;
 
-  const paymentCounts = {
-    UPI: todayOrders.filter(
-      (order) =>
-        order.paymentMethod === 'UPI' ||
-        order.paymentMethod === 'upi'
-    ).length,
-
-    Cash: todayOrders.filter(
-      (order) =>
-        order.paymentMethod === 'CASH' ||
-        order.paymentMethod === 'cash'
-    ).length,
-
-    Online: todayOrders.filter(
-      (order) =>
-        order.paymentMethod === 'ONLINE' ||
-        order.paymentMethod === 'online'
-    ).length,
-  };
-
-  const topSellingItems = useMemo(() => {
+  const topItems = useMemo(() => {
     const map = new Map<
       string,
       {
@@ -270,8 +175,9 @@ export const AdminDashboardOverview: React.FC<
       }
     >();
 
-    activeSalesOrders.forEach((order) => {
+    salesOrders.forEach((order) => {
       order.items.forEach((item) => {
+
         const id =
           item.menuItem?.id ||
           item.menuItem?.name;
@@ -292,15 +198,14 @@ export const AdminDashboardOverview: React.FC<
           map.set(id, {
             name:
               item.menuItem?.name ||
-              'Unknown item',
-            quantity: Number(
-              item.quantity || 0
-            ),
-            sales: Number(
-              item.totalPrice || 0
-            ),
+              'Item',
+            quantity:
+              Number(item.quantity || 0),
+            sales:
+              Number(item.totalPrice || 0),
           });
         }
+
       });
     });
 
@@ -310,606 +215,597 @@ export const AdminDashboardOverview: React.FC<
           b.quantity - a.quantity
       )
       .slice(0, 5);
-  }, [activeSalesOrders]);
 
-  const recentOrders = [...todayOrders]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() -
-        new Date(a.createdAt).getTime()
-    )
-    .slice(0, 5);
+  }, [salesOrders]);
 
-  const goToOrders = () =>
-    onNavigateTab('orders');
-
-  const goToKDS = () =>
-    setAdminScreen('kitchen');
-
-  const goToPOS = () =>
-    setAdminScreen('pos');
+  const banner =
+    heroBanners.find(
+      (item) => item.isActive !== false
+    ) ||
+    heroBanners[0];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
 
-      {/* =========================================================
-          TOP HEADER
-      ========================================================== */}
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-
-        <div>
-          <div className="flex items-center gap-2">
-            <LayoutDashboard className="w-4 h-4 text-[#7A7B26]" />
-
-            <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#7A7B26]">
-              SYZLO ADMIN
-            </span>
-          </div>
-
-          <h1 className="mt-1 text-2xl sm:text-3xl font-black text-[#20221A]">
-            Dashboard
-          </h1>
-
-          <p className="mt-1 text-sm text-stone-500">
-            Overview & operations dashboard
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-
-          <div className="hidden md:flex items-center gap-2 h-10 px-4 rounded-xl bg-white border border-[#E8D8BD]">
-            <Search className="w-4 h-4 text-stone-400" />
-
-            <span className="text-xs text-stone-400">
-              Search orders, customers, menu...
-            </span>
-          </div>
-
-          <div className="h-10 px-4 rounded-xl bg-white border border-[#E8D8BD] flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-
-            <span className="text-xs font-bold text-[#20221A]">
-              Pre-launch
-            </span>
-          </div>
-
-        </div>
-      </div>
-
-      {/* =========================================================
-          KPI CARDS
-      ========================================================== */}
+      {/* =====================================================
+          KPI ROW
+      ====================================================== */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
 
-        <KpiCard
-          label="Total Orders"
-          value={todayOrders.length.toString()}
+        <Kpi
           icon={ShoppingBag}
+          label="Total Orders"
+          value={String(todayOrders.length)}
+          helper="Today"
         />
 
-        <KpiCard
-          label="Total Revenue"
-          value={formatCurrency(todaySales)}
+        <Kpi
           icon={IndianRupee}
+          label="Total Revenue"
+          value={money(revenue)}
+          helper="Today"
         />
 
-        <KpiCard
+        <Kpi
+          icon={TrendingUp}
           label="Average Order Value"
-          value={formatCurrency(averageOrderValue)}
-          icon={TrendingIcon}
+          value={money(aov)}
+          helper="Per order"
         />
 
-        <KpiCard
+        <Kpi
+          icon={Bike}
           label="Active Riders"
           value={`${activeRiders.length} / ${riders.length}`}
-          subtitle={
+          helper={
             activeRiders.length > 0
-              ? `${activeRiders.length} currently available`
+              ? `${activeRiders.length} available`
               : 'No active riders'
           }
-          icon={Bike}
         />
 
-        <KpiCard
+        <Kpi
+          icon={Users}
           label="Table Occupancy"
           value="—"
-          subtitle="No table data yet"
-          icon={Users}
+          helper="Dine-in tables"
         />
 
       </div>
 
-      {/* =========================================================
-          HERO + STATUS + QUICK ACTIONS
-      ========================================================== */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+      {/* =====================================================
+          HERO / STATUS / ACTIONS
+      ====================================================== */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3">
 
         {/* HERO */}
-        <section className="xl:col-span-7 min-h-[220px] rounded-3xl overflow-hidden relative bg-[#252719] border border-[#D8C7A8]">
+        <section className="xl:col-span-7 min-h-[215px] rounded-xl overflow-hidden relative bg-[#27291E]">
 
-          <div className="absolute inset-0 bg-gradient-to-r from-[#20221A] via-[#2B2D20] to-[#5A492F]" />
+          {banner?.imageUrl && (
+            <img
+              src={banner.imageUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover opacity-60"
+            />
+          )}
 
-          <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-20 bg-[radial-gradient(circle_at_center,_#EED7B5,_transparent_65%)]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#22241A] via-[#22241A]/80 to-transparent" />
 
-          <div className="relative z-10 p-7 sm:p-9 h-full flex flex-col justify-between">
+          <div className="relative z-10 p-7 h-full flex flex-col justify-center">
 
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.25em] text-[#EED7B5] font-bold">
-                THE BAO MAKERS'
-              </p>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-[#EED7B5] font-bold">
+              {banner?.badge ||
+                'THE BAO MAKERS'}
+            </p>
 
-              <h2 className="mt-3 max-w-md text-3xl sm:text-4xl font-black text-white leading-tight">
-                Handcrafted
-                <br />
-                Comfort, Always.
-              </h2>
+            <h2 className="mt-3 text-3xl sm:text-4xl font-serif font-bold text-white leading-tight max-w-[480px]">
+              {banner?.title ||
+                'Handcrafted Comfort, Always.'}
+            </h2>
 
-              <p className="mt-3 text-sm text-white/75">
-                Fresh buns. Real ingredients. Happier people.
-              </p>
-            </div>
+            <p className="mt-2 text-sm text-white/80 max-w-[420px]">
+              {banner?.subtitle ||
+                'Fresh buns. Real ingredients. Happier people.'}
+            </p>
 
             <button
               type="button"
-              onClick={goToOrders}
-              className="mt-6 w-fit inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7A7B26] hover:bg-[#696A20] text-white text-xs font-bold transition-colors"
+              onClick={() =>
+                onNavigateTab('orders')
+              }
+              className="mt-5 w-fit px-4 py-2.5 rounded-lg bg-[#565F28] hover:bg-[#48501F] text-white text-xs font-bold flex items-center gap-2"
             >
               View Today's Orders
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
 
           </div>
+
         </section>
 
         {/* OUTLET STATUS */}
-        <section className="xl:col-span-2 bg-white rounded-3xl border border-[#E8D8BD] p-5">
+        <section className="xl:col-span-2 bg-white rounded-xl border border-[#E6DED1] p-4">
 
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-black text-[#20221A]">
-              Outlet Status
-            </h2>
 
-            <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-[#F5F0E6] text-[#7A7B26]">
-              PRE-LAUNCH
+            <h3 className="text-sm font-black">
+              Outlet Status
+            </h3>
+
+            <span className="px-2.5 py-1 rounded-full bg-[#DDEBD4] text-[#35733B] text-[10px] font-black">
+              Pre-launch
             </span>
+
           </div>
 
           <div className="mt-5 space-y-4">
 
-            <StatusLine
+            <Status
               label="Accepting Orders"
               value="No"
             />
 
-            <StatusLine
+            <Status
               label="Kitchen Online"
-              value="Ready"
+              value="Yes"
             />
 
-            <StatusLine
+            <Status
               label="POS Active"
-              value="Ready"
+              value="Yes"
             />
 
-            <StatusLine
+            <Status
               label="Online Ordering"
               value="Ready"
             />
 
           </div>
+
         </section>
 
         {/* QUICK ACTIONS */}
-        <section className="xl:col-span-3 bg-white rounded-3xl border border-[#E8D8BD] p-5">
+        <section className="xl:col-span-3 bg-white rounded-xl border border-[#E6DED1] p-4">
 
-          <h2 className="text-sm font-black text-[#20221A]">
+          <h3 className="text-sm font-black">
             Quick Actions
-          </h2>
+          </h3>
 
           <div className="grid grid-cols-2 gap-2.5 mt-4">
 
-            <QuickAction
-              label="New Order"
-              icon={Plus}
-              onClick={goToPOS}
+            <Action
+              icon={PlusIcon}
+              label={
+                <>
+                  New Order
+                  <br />
+                  (POS)
+                </>
+              }
+              onClick={() =>
+                onNavigateTab('orders')
+              }
             />
 
-            <QuickAction
-              label="Kitchen Display"
+            <Action
               icon={Utensils}
-              onClick={goToKDS}
+              label={
+                <>
+                  Kitchen Display
+                  <br />
+                  (KDS)
+                </>
+              }
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent(
+                    'syzlo-open-kds'
+                  )
+                )
+              }
             />
 
-            <QuickAction
-              label="View Menu"
+            <Action
               icon={ShoppingBag}
-              onClick={() => onNavigateTab('menu')}
+              label="View Menu"
+              onClick={() =>
+                onNavigateTab('menu')
+              }
             />
 
-            <QuickAction
-              label="Print Last Bill"
+            <Action
               icon={Printer}
-              onClick={goToPOS}
+              label="Print Last Bill"
+              onClick={() => {}}
             />
 
           </div>
+
         </section>
 
       </div>
 
-      {/* =========================================================
-          LIVE ORDERS + TODAY GLANCE
-      ========================================================== */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+      {/* =====================================================
+          LIVE ORDERS + GLANCE
+      ====================================================== */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3">
 
         {/* LIVE ORDERS */}
-        <section className="xl:col-span-8 bg-white rounded-3xl border border-[#E8D8BD] overflow-hidden">
+        <section className="xl:col-span-8 bg-white rounded-xl border border-[#E6DED1] overflow-hidden">
 
-          <div className="p-5 border-b border-[#F0E8DB]">
+          <div className="p-4 border-b border-[#EEE8DE]">
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center justify-between">
 
-              <div>
-                <h2 className="text-lg font-black text-[#20221A]">
-                  Live Orders
-                  <span className="ml-2 text-[#7A7B26]">
-                    ({todayOrders.length})
-                  </span>
-                </h2>
-
-                <p className="mt-1 text-xs text-stone-500">
-                  Today's active order pipeline
-                </p>
-              </div>
+              <h3 className="text-lg font-black">
+                Live Orders
+                <span className="ml-1 text-[#7A7B26]">
+                  ({todayOrders.length})
+                </span>
+              </h3>
 
               <button
                 type="button"
-                onClick={goToOrders}
-                className="inline-flex items-center gap-1 text-xs font-bold text-[#7A7B26]"
+                onClick={() =>
+                  onNavigateTab('orders')
+                }
+                className="text-xs font-bold text-[#397A35] flex items-center gap-1"
               >
                 View all
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3 h-3" />
               </button>
 
             </div>
 
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="flex gap-2 mt-3 overflow-x-auto">
 
-              <OrderFilter
-                label="All"
-                count={todayOrders.length}
+              <Filter
+                label={`All (${todayOrders.length})`}
                 active
               />
 
-              <OrderFilter
-                label="New"
-                count={newOrders.length}
+              <Filter
+                label={`New (${newOrders})`}
               />
 
-              <OrderFilter
-                label="Preparing"
-                count={preparingOrders.length}
+              <Filter
+                label={`Preparing (${preparingOrders})`}
               />
 
-              <OrderFilter
-                label="Ready"
-                count={readyOrders.length}
+              <Filter
+                label={`Ready (${readyOrders})`}
               />
 
-              <OrderFilter
-                label="Delivery"
-                count={deliveryOrders.length}
+              <Filter
+                label={`Out for Delivery (${outForDelivery})`}
               />
 
             </div>
-
-          </div>
-
-          {recentOrders.length === 0 ? (
-            <EmptyOrders />
-          ) : (
-            <div className="divide-y divide-[#F0E8DB]">
-
-              {recentOrders.map((order) => (
-                <LiveOrderRow
-                  key={order.id}
-                  order={order}
-                />
-              ))}
-
-            </div>
-          )}
-
-        </section>
-
-        {/* TODAY AT A GLANCE */}
-        <section className="xl:col-span-4 bg-white rounded-3xl border border-[#E8D8BD] p-5">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-              <h2 className="text-lg font-black text-[#20221A]">
-                Today at a Glance
-              </h2>
-
-              <p className="mt-1 text-xs text-stone-500">
-                Current business activity
-              </p>
-            </div>
-
-            <Activity className="w-5 h-5 text-[#7A7B26]" />
-
-          </div>
-
-          <div className="mt-6">
-
-            <GlanceRow
-              label="Orders"
-              value={todayOrders.length}
-            />
-
-            <GlanceRow
-              label="Revenue"
-              value={formatCurrency(todaySales)}
-            />
-
-            <GlanceRow
-              label="Items Sold"
-              value={itemsSold}
-            />
-
-            <GlanceRow
-              label="Discounts"
-              value={formatCurrency(todayDiscounts)}
-            />
-
-            <GlanceRow
-              label="Delivery"
-              value={deliveryCount}
-            />
-
-            <GlanceRow
-              label="Pickup"
-              value={pickupCount}
-            />
-
-            <GlanceRow
-              label="Dine-in"
-              value={dineInCount}
-            />
-
-          </div>
-
-        </section>
-
-      </div>
-
-      {/* =========================================================
-          LOWER DASHBOARD
-      ========================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-12 gap-4">
-
-        {/* TOP SELLING */}
-        <section className="lg:col-span-1 xl:col-span-5 bg-white rounded-3xl border border-[#E8D8BD] p-5">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-              <h2 className="text-lg font-black text-[#20221A]">
-                Top Selling Items
-              </h2>
-
-              <p className="mt-1 text-xs text-stone-500">
-                Today's item performance
-              </p>
-            </div>
-
-            <span className="text-xs font-semibold text-stone-400">
-              Today
-            </span>
-
-          </div>
-
-          {topSellingItems.length === 0 ? (
-            <div className="py-12 text-center">
-              <Package className="w-8 h-8 mx-auto text-[#CFC4B3]" />
-
-              <p className="mt-3 text-sm font-semibold text-stone-500">
-                No item sales yet
-              </p>
-
-              <p className="mt-1 text-xs text-stone-400">
-                Your best-selling items will appear here.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-5 space-y-2">
-
-              {topSellingItems.map((item, index) => (
-                <div
-                  key={`${item.name}-${index}`}
-                  className="flex items-center gap-3 py-2.5 border-b border-[#F2ECE3] last:border-0"
-                >
-
-                  <div className="w-7 h-7 rounded-full bg-[#F3E9D7] flex items-center justify-center text-xs font-black text-[#7A7B26]">
-                    {index + 1}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-
-                    <p className="text-sm font-bold text-[#20221A] truncate">
-                      {item.name}
-                    </p>
-
-                    <p className="text-[11px] text-stone-400">
-                      {item.quantity} sold
-                    </p>
-
-                  </div>
-
-                  <p className="text-sm font-black text-[#20221A]">
-                    {formatCurrency(item.sales)}
-                  </p>
-
-                </div>
-              ))}
-
-            </div>
-          )}
-
-        </section>
-
-        {/* RIDER STATUS */}
-        <section className="lg:col-span-1 xl:col-span-4 bg-white rounded-3xl border border-[#E8D8BD] p-5">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-              <h2 className="text-lg font-black text-[#20221A]">
-                Rider Status
-              </h2>
-
-              <p className="mt-1 text-xs text-stone-500">
-                Current delivery team
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setAdminScreen('riders')}
-              className="text-xs font-bold text-[#7A7B26]"
-            >
-              View all
-            </button>
-
-          </div>
-
-          {riders.length === 0 ? (
-            <div className="py-12 text-center">
-              <Bike className="w-8 h-8 mx-auto text-[#CFC4B3]" />
-
-              <p className="mt-3 text-sm font-semibold text-stone-500">
-                No riders added
-              </p>
-            </div>
-          ) : (
-            <div className="mt-5 space-y-2">
-
-              {riders.slice(0, 4).map((rider) => {
-
-                const status =
-                  rider.status === 'BUSY'
-                    ? 'Busy'
-                    : rider.status === 'ONLINE' ||
-                        rider.isAvailable
-                      ? 'Available'
-                      : 'Offline';
-
-                return (
-                  <div
-                    key={rider.id}
-                    className="flex items-center gap-3 py-2.5 border-b border-[#F2ECE3] last:border-0"
-                  >
-
-                    <div className="w-9 h-9 rounded-full bg-[#EEE7D8] flex items-center justify-center">
-                      <Bike className="w-4 h-4 text-[#7A7B26]" />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-
-                      <p className="text-sm font-bold text-[#20221A] truncate">
-                        {rider.name}
-                      </p>
-
-                      <p className="text-[11px] text-stone-400">
-                        {rider.vehicle || 'Delivery'}
-                      </p>
-
-                    </div>
-
-                    <span
-                      className={`text-[10px] font-bold px-2 py-1 rounded-full ${
-                        status === 'Available'
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : status === 'Busy'
-                            ? 'bg-amber-50 text-amber-700'
-                            : 'bg-stone-100 text-stone-500'
-                      }`}
-                    >
-                      {status}
-                    </span>
-
-                  </div>
-                );
-              })}
-
-            </div>
-          )}
-
-        </section>
-
-        {/* RECENT ACTIVITY */}
-        <section className="lg:col-span-2 xl:col-span-3 bg-white rounded-3xl border border-[#E8D8BD] p-5">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-              <h2 className="text-lg font-black text-[#20221A]">
-                Recent Activity
-              </h2>
-
-              <p className="mt-1 text-xs text-stone-500">
-                Latest order events
-              </p>
-            </div>
-
-            <Clock3 className="w-5 h-5 text-[#7A7B26]" />
 
           </div>
 
           {todayOrders.length === 0 ? (
             <div className="py-12 text-center">
 
-              <Clock3 className="w-8 h-8 mx-auto text-[#CFC4B3]" />
+              <ShoppingBag className="w-8 h-8 mx-auto text-[#CFC7B8]" />
 
-              <p className="mt-3 text-sm font-semibold text-stone-500">
-                No activity yet
+              <p className="mt-3 text-sm font-bold text-stone-500">
+                No live orders yet
               </p>
 
               <p className="mt-1 text-xs text-stone-400">
-                Order activity will appear here.
+                New orders will appear here when SYZLO starts.
               </p>
 
             </div>
           ) : (
-            <div className="mt-5 space-y-4">
+            <div>
+              {todayOrders.slice(0, 6).map(
+                (order) => (
+                  <div
+                    key={order.id}
+                    className="px-4 py-3 border-b border-[#F0EBE3] grid grid-cols-12 gap-3 items-center"
+                  >
 
-              {recentOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="flex items-start gap-3"
-                >
+                    <div className="col-span-2">
+                      <p className="text-xs font-black text-[#8C2019]">
+                        #{order.id}
+                      </p>
+                    </div>
 
-                  <div className="w-7 h-7 rounded-full bg-[#F3E9D7] flex items-center justify-center shrink-0">
-                    <CircleCheck className="w-3.5 h-3.5 text-[#7A7B26]" />
+                    <div className="col-span-3">
+                      <p className="text-xs font-bold">
+                        {order.customerName}
+                      </p>
+
+                      <p className="text-[10px] text-stone-400">
+                        {order.items.length} item
+                        {order.items.length !== 1
+                          ? 's'
+                          : ''}
+                      </p>
+                    </div>
+
+                    <div className="col-span-2">
+                      <p className="text-xs">
+                        {order.orderType}
+                      </p>
+                    </div>
+
+                    <div className="col-span-2">
+                      <span className="px-2 py-1 rounded-full bg-[#E7F2E4] text-[#367737] text-[10px] font-bold">
+                        {String(
+                          order.status
+                        ).replaceAll(
+                          '_',
+                          ' '
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="col-span-3 text-right">
+                      <p className="text-sm font-black">
+                        {money(
+                          Number(
+                            order.grandTotal || 0
+                          )
+                        )}
+                      </p>
+                    </div>
+
                   </div>
+                )
+              )}
+            </div>
+          )}
 
-                  <div className="flex-1 min-w-0">
+        </section>
 
-                    <p className="text-xs font-bold text-[#20221A]">
-                      Order {order.id}
+        {/* TODAY AT A GLANCE */}
+        <section className="xl:col-span-4 bg-white rounded-xl border border-[#E6DED1] p-4">
+
+          <div className="flex items-center justify-between">
+
+            <h3 className="text-lg font-black">
+              Today at a Glance
+            </h3>
+
+            <Activity className="w-5 h-5 text-[#7A7B26]" />
+
+          </div>
+
+          <div className="mt-5 space-y-1">
+
+            <Glance
+              label="Orders"
+              value={todayOrders.length}
+            />
+
+            <Glance
+              label="Revenue"
+              value={money(revenue)}
+            />
+
+            <Glance
+              label="Items Sold"
+              value={itemsSold}
+            />
+
+            <Glance
+              label="Discounts"
+              value={money(discounts)}
+            />
+
+            <Glance
+              label="Delivery"
+              value={deliveryCount}
+            />
+
+            <Glance
+              label="Pickup"
+              value={pickupCount}
+            />
+
+            <Glance
+              label="Dine-in"
+              value={dineInCount}
+            />
+
+          </div>
+
+          <div className="mt-5 h-20 rounded-lg bg-[#F7F3EB] flex items-center justify-center">
+            <span className="text-[11px] text-stone-400">
+              Sales graph will appear after the first sale
+            </span>
+          </div>
+
+        </section>
+
+      </div>
+
+      {/* =====================================================
+          BOTTOM ROW
+      ====================================================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-12 gap-3">
+
+        {/* TOP ITEMS */}
+        <section className="xl:col-span-5 bg-white rounded-xl border border-[#E6DED1] p-4">
+
+          <div className="flex items-center justify-between">
+
+            <h3 className="text-lg font-black">
+              Top Selling Items
+            </h3>
+
+            <span className="text-xs text-stone-400">
+              Today
+            </span>
+
+          </div>
+
+          {topItems.length === 0 ? (
+            <Empty
+              icon={Package}
+              title="No sales yet"
+              text="Your best-selling items will appear here."
+            />
+          ) : (
+            <div className="mt-4">
+              {topItems.map(
+                (item, index) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center gap-3 py-2.5 border-b border-[#F0EBE3]"
+                  >
+
+                    <div className="w-7 h-7 rounded-full bg-[#F4E7C8] flex items-center justify-center text-xs font-black">
+                      {index + 1}
+                    </div>
+
+                    <div className="flex-1">
+                      <p className="text-xs font-bold">
+                        {item.name}
+                      </p>
+
+                      <p className="text-[10px] text-stone-400">
+                        {item.quantity} sold
+                      </p>
+                    </div>
+
+                    <p className="text-xs font-black">
+                      {money(item.sales)}
                     </p>
 
-                    <p className="mt-0.5 text-[11px] text-stone-400">
-                      {getStatusLabel(
-                        String(order.status)
-                      )}
-                    </p>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+
+        </section>
+
+        {/* RIDERS */}
+        <section className="xl:col-span-4 bg-white rounded-xl border border-[#E6DED1] p-4">
+
+          <div className="flex items-center justify-between">
+
+            <h3 className="text-lg font-black">
+              Rider Status
+            </h3>
+
+            <span className="text-xs font-bold text-[#397A35]">
+              View all →
+            </span>
+
+          </div>
+
+          {riders.length === 0 ? (
+            <Empty
+              icon={Bike}
+              title="No riders"
+              text="Add riders to manage deliveries."
+            />
+          ) : (
+            <div className="mt-4">
+
+              {riders.slice(0, 4).map(
+                (rider) => {
+
+                  const status =
+                    rider.status ===
+                    'BUSY'
+                      ? 'On Delivery'
+                      : rider.status ===
+                          'ONLINE' ||
+                        rider.isAvailable
+                        ? 'Available'
+                        : 'Offline';
+
+                  return (
+                    <div
+                      key={rider.id}
+                      className="flex items-center gap-3 py-2.5 border-b border-[#F0EBE3]"
+                    >
+
+                      <div className="w-9 h-9 rounded-full bg-[#EEE8D9] flex items-center justify-center">
+                        <Bike className="w-4 h-4 text-[#7A7B26]" />
+                      </div>
+
+                      <div className="flex-1">
+
+                        <p className="text-xs font-bold">
+                          {rider.name}
+                        </p>
+
+                        <p className="text-[10px] text-stone-400">
+                          {rider.vehicle ||
+                            'Delivery rider'}
+                        </p>
+
+                      </div>
+
+                      <span className="px-2 py-1 rounded-full bg-[#DDEED8] text-[#397A35] text-[9px] font-bold">
+                        {status}
+                      </span>
+
+                    </div>
+                  );
+                }
+              )}
+
+            </div>
+          )}
+
+        </section>
+
+        {/* ACTIVITY */}
+        <section className="xl:col-span-3 bg-white rounded-xl border border-[#E6DED1] p-4">
+
+          <div className="flex items-center justify-between">
+
+            <h3 className="text-lg font-black">
+              Recent Activity
+            </h3>
+
+            <Activity className="w-4 h-4 text-[#7A7B26]" />
+
+          </div>
+
+          {todayOrders.length === 0 ? (
+            <Empty
+              icon={Activity}
+              title="No activity"
+              text="Recent order events will appear here."
+            />
+          ) : (
+            <div className="mt-4 space-y-4">
+
+              {todayOrders
+                .slice(0, 5)
+                .map((order) => (
+                  <div
+                    key={order.id}
+                    className="flex gap-3"
+                  >
+
+                    <div className="w-7 h-7 rounded-full bg-[#E7EBCF] flex items-center justify-center shrink-0">
+                      <Box className="w-3.5 h-3.5 text-[#565F28]" />
+                    </div>
+
+                    <div>
+
+                      <p className="text-[11px] font-bold">
+                        Order received
+                      </p>
+
+                      <p className="text-[10px] text-stone-400">
+                        #{order.id}
+                      </p>
+
+                    </div>
 
                   </div>
-
-                </div>
-              ))}
+                ))}
 
             </div>
           )}
@@ -918,130 +814,71 @@ export const AdminDashboardOverview: React.FC<
 
       </div>
 
-      {/* =========================================================
-          PAYMENT + ORDER SOURCE
-      ========================================================== */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* =====================================================
+          PAYMENT SUMMARY
+      ====================================================== */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-        <SmallSummaryCard
-          title="UPI Payments"
-          value={paymentCounts.UPI}
+        <Payment
           icon={WalletCards}
+          label="UPI Payments"
+          value={0}
         />
 
-        <SmallSummaryCard
-          title="Cash Payments"
-          value={paymentCounts.Cash}
+        <Payment
           icon={Banknote}
+          label="Cash Payments"
+          value={0}
         />
 
-        <SmallSummaryCard
-          title="Online Payments"
-          value={paymentCounts.Online}
+        <Payment
           icon={CreditCard}
+          label="Online Payments"
+          value={0}
         />
 
       </div>
-
-      {/* =========================================================
-          QUICK ADMIN LINKS
-      ========================================================== */}
-      <section className="rounded-3xl bg-[#F5EFE4] border border-[#E8D8BD] p-5">
-
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-wider text-[#20221A]">
-              Administration
-            </h2>
-
-            <p className="mt-1 text-xs text-stone-500">
-              Manage the operational areas of your outlet.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-
-            <AdminLink
-              label="Orders"
-              onClick={goToOrders}
-            />
-
-            <AdminLink
-              label="Kitchen / KDS"
-              onClick={goToKDS}
-            />
-
-            <AdminLink
-              label="POS"
-              onClick={goToPOS}
-            />
-
-            <AdminLink
-              label="Menu"
-              onClick={() => onNavigateTab('menu')}
-            />
-
-            <AdminLink
-              label="Coupons"
-              onClick={() => onNavigateTab('coupons')}
-            />
-
-            <AdminLink
-              label="Reports"
-              onClick={() => onNavigateTab('reports')}
-            />
-
-          </div>
-
-        </div>
-
-      </section>
 
     </div>
   );
 };
 
-/* ===============================================================
-   KPI CARD
-================================================================ */
+/* ============================================================
+   COMPONENTS
+============================================================ */
 
-interface KpiCardProps {
+const Kpi: React.FC<{
+  icon: React.ElementType;
   label: string;
   value: string;
-  subtitle?: string;
-  icon: React.ElementType;
-}
-
-const KpiCard: React.FC<KpiCardProps> = ({
+  helper: string;
+}> = ({
+  icon: Icon,
   label,
   value,
-  subtitle,
-  icon: Icon,
+  helper,
 }) => (
-  <div className="bg-white rounded-2xl border border-[#E8D8BD] p-4 shadow-[0_2px_10px_rgba(60,45,20,0.03)]">
+  <div className="bg-white rounded-xl border border-[#E6DED1] p-4">
 
     <div className="flex items-center gap-3">
 
-      <div className="w-10 h-10 rounded-full bg-[#F2E8D5] flex items-center justify-center shrink-0">
-        <Icon className="w-5 h-5 text-[#7A7B26]" />
+      <div className="w-12 h-12 rounded-full bg-[#F0E7D4] flex items-center justify-center">
+        <Icon className="w-6 h-6 text-[#80600D]" />
       </div>
 
       <div className="min-w-0">
 
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+        <p className="text-xs text-stone-500">
           {label}
         </p>
 
-        <p className="mt-1 text-xl font-black text-[#20221A] truncate">
+        <p className="mt-1 text-xl sm:text-2xl font-black truncate">
           {value}
         </p>
 
-        {subtitle && (
-          <p className="mt-0.5 text-[10px] text-stone-400 truncate">
-            {subtitle}
-          </p>
-        )}
+        <p className="mt-0.5 text-[10px] text-stone-400">
+          {helper}
+        </p>
 
       </div>
 
@@ -1050,19 +887,15 @@ const KpiCard: React.FC<KpiCardProps> = ({
   </div>
 );
 
-/* ===============================================================
-   STATUS LINE
-================================================================ */
-
-const StatusLine: React.FC<{
+const Status: React.FC<{
   label: string;
   value: string;
 }> = ({ label, value }) => (
-  <div className="flex items-center justify-between gap-3">
+  <div className="flex items-center justify-between">
 
     <div className="flex items-center gap-2">
 
-      <span className="w-2 h-2 rounded-full bg-[#B9B79D]" />
+      <span className="w-2.5 h-2.5 rounded-full bg-[#24913A]" />
 
       <span className="text-xs text-stone-600">
         {label}
@@ -1070,208 +903,99 @@ const StatusLine: React.FC<{
 
     </div>
 
-    <span className="text-xs font-bold text-stone-500">
+    <span className="text-xs font-bold">
       {value}
     </span>
 
   </div>
 );
 
-/* ===============================================================
-   QUICK ACTION
-================================================================ */
-
-const QuickAction: React.FC<{
-  label: string;
+const Action: React.FC<{
   icon: React.ElementType;
+  label: React.ReactNode;
   onClick: () => void;
-}> = ({ label, icon: Icon, onClick }) => (
+}> = ({
+  icon: Icon,
+  label,
+  onClick,
+}) => (
   <button
     type="button"
     onClick={onClick}
-    className="min-h-[72px] rounded-2xl border border-[#E8D8BD] bg-[#FAF7F0] hover:bg-[#F1E8D7] transition-colors flex flex-col items-center justify-center gap-2 text-center"
+    className="h-[74px] rounded-xl bg-[#F3F5E8] hover:bg-[#E9ECD9] flex flex-col items-center justify-center gap-2 transition-colors"
   >
-    <Icon className="w-5 h-5 text-[#7A7B26]" />
+    <Icon className="w-5 h-5 text-[#20221A]" />
 
-    <span className="text-[11px] font-bold text-[#20221A]">
+    <span className="text-[10px] font-bold text-center leading-tight">
       {label}
     </span>
   </button>
 );
 
-/* ===============================================================
-   ORDER FILTER
-================================================================ */
-
-const OrderFilter: React.FC<{
+const Filter: React.FC<{
   label: string;
-  count: number;
   active?: boolean;
-}> = ({ label, count, active }) => (
-  <div
-    className={`px-3 py-1.5 rounded-lg text-[11px] font-bold ${
-      active
-        ? 'bg-[#7A7B26] text-white'
-        : 'bg-[#F7F3EB] text-stone-600'
-    }`}
+}> = ({ label, active }) => (
+  <span
+    className={`
+      px-3 py-1.5
+      rounded-lg
+      whitespace-nowrap
+      text-[10px]
+      font-bold
+      ${
+        active
+          ? 'bg-[#565F28] text-white'
+          : 'bg-[#F3F1ED] text-stone-600'
+      }
+    `}
   >
-    {label} ({count})
-  </div>
+    {label}
+  </span>
 );
 
-/* ===============================================================
-   EMPTY ORDERS
-================================================================ */
-
-const EmptyOrders = () => (
-  <div className="py-14 px-5 text-center">
-
-    <div className="mx-auto w-12 h-12 rounded-2xl bg-[#F5EFE4] flex items-center justify-center">
-      <ReceiptText className="w-5 h-5 text-[#7A7B26]" />
-    </div>
-
-    <h3 className="mt-4 text-sm font-black text-[#20221A]">
-      No live orders
-    </h3>
-
-    <p className="mt-1 text-xs text-stone-400 max-w-sm mx-auto">
-      New customer, POS and delivery orders will appear
-      here when SYZLO starts receiving orders.
-    </p>
-
-  </div>
-);
-
-/* ===============================================================
-   LIVE ORDER ROW
-================================================================ */
-
-const LiveOrderRow: React.FC<{
-  order: any;
-}> = ({ order }) => (
-  <div className="p-4 hover:bg-[#FCFAF6] transition-colors">
-
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-
-      <div className="md:col-span-2">
-
-        <p className="text-xs font-black text-[#8C1E16]">
-          #{order.id}
-        </p>
-
-        <p className="mt-1 text-[10px] text-stone-400">
-          {new Date(order.createdAt).toLocaleTimeString(
-            [],
-            {
-              hour: '2-digit',
-              minute: '2-digit',
-            }
-          )}
-        </p>
-
-      </div>
-
-      <div className="md:col-span-3">
-
-        <p className="text-xs font-bold text-[#20221A]">
-          {order.customerName || 'Customer'}
-        </p>
-
-        <p className="mt-1 text-[10px] text-stone-400">
-          {order.customerPhone || 'Phone unavailable'}
-        </p>
-
-      </div>
-
-      <div className="md:col-span-3">
-
-        <div className="flex items-center gap-2">
-
-          <ShoppingBag className="w-3.5 h-3.5 text-[#7A7B26]" />
-
-          <span className="text-xs font-semibold text-stone-600">
-            {order.items?.length || 0} item
-            {order.items?.length === 1 ? '' : 's'}
-          </span>
-
-        </div>
-
-        <p className="mt-1 text-[10px] text-stone-400">
-          {getOrderTypeLabel(
-            String(order.orderType)
-          )}
-        </p>
-
-      </div>
-
-      <div className="md:col-span-2">
-
-        <span className="inline-flex px-2.5 py-1 rounded-full bg-[#F3E9D7] text-[10px] font-bold text-[#7A7B26]">
-          {getStatusLabel(
-            String(order.status)
-          )}
-        </span>
-
-      </div>
-
-      <div className="md:col-span-2 text-left md:text-right">
-
-        <p className="text-sm font-black text-[#20221A]">
-          {formatCurrency(
-            Number(order.grandTotal || 0)
-          )}
-        </p>
-
-      </div>
-
-    </div>
-
-  </div>
-);
-
-/* ===============================================================
-   GLANCE ROW
-================================================================ */
-
-const GlanceRow: React.FC<{
+const Glance: React.FC<{
   label: string;
   value: string | number;
-}> = ({ label, value }) => (
-  <div className="flex items-center justify-between py-3 border-b border-[#F2ECE3] last:border-0">
+}> = ({
+  label,
+  value,
+}) => (
+  <div className="flex items-center justify-between py-2.5 border-b border-[#F0EBE3] last:border-0">
 
     <span className="text-xs text-stone-500">
       {label}
     </span>
 
-    <span className="text-sm font-black text-[#20221A]">
+    <span className="text-sm font-black">
       {value}
     </span>
 
   </div>
 );
 
-/* ===============================================================
-   SMALL SUMMARY
-================================================================ */
-
-const SmallSummaryCard: React.FC<{
-  title: string;
-  value: number;
+const Payment: React.FC<{
   icon: React.ElementType;
-}> = ({ title, value, icon: Icon }) => (
-  <div className="bg-white rounded-2xl border border-[#E8D8BD] p-4 flex items-center gap-3">
+  label: string;
+  value: number;
+}> = ({
+  icon: Icon,
+  label,
+  value,
+}) => (
+  <div className="bg-white rounded-xl border border-[#E6DED1] p-4 flex items-center gap-3">
 
-    <div className="w-10 h-10 rounded-xl bg-[#F4EDDF] flex items-center justify-center">
+    <div className="w-10 h-10 rounded-xl bg-[#F1EBD9] flex items-center justify-center">
       <Icon className="w-4 h-4 text-[#7A7B26]" />
     </div>
 
     <div>
 
       <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
-        {title}
+        {label}
       </p>
 
-      <p className="mt-1 text-xl font-black text-[#20221A]">
+      <p className="text-xl font-black mt-1">
         {value}
       </p>
 
@@ -1280,29 +1004,31 @@ const SmallSummaryCard: React.FC<{
   </div>
 );
 
-/* ===============================================================
-   ADMIN LINK
-================================================================ */
+const Empty: React.FC<{
+  icon: React.ElementType;
+  title: string;
+  text: string;
+}> = ({
+  icon: Icon,
+  title,
+  text,
+}) => (
+  <div className="py-10 text-center">
 
-const AdminLink: React.FC<{
-  label: string;
-  onClick: () => void;
-}> = ({ label, onClick }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#E4D6BF] hover:bg-[#7A7B26] hover:text-white transition-colors text-xs font-bold text-[#20221A]"
-  >
-    {label}
-    <ChevronRight className="w-3 h-3" />
-  </button>
+    <Icon className="w-7 h-7 mx-auto text-[#CFC7B8]" />
+
+    <p className="mt-3 text-xs font-bold text-stone-500">
+      {title}
+    </p>
+
+    <p className="mt-1 text-[10px] text-stone-400">
+      {text}
+    </p>
+
+  </div>
 );
 
-/* ===============================================================
-   ICON HELPER
-================================================================ */
-
-const TrendingIcon: React.FC<{
+const PlusIcon: React.FC<{
   className?: string;
 }> = ({ className }) => (
   <svg
@@ -1312,7 +1038,6 @@ const TrendingIcon: React.FC<{
     strokeWidth="2"
     className={className}
   >
-    <path d="M3 17l6-6 4 4 8-8" />
-    <path d="M14 7h7v7" />
+    <path d="M12 5v14M5 12h14" />
   </svg>
 );

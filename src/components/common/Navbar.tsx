@@ -134,16 +134,14 @@ export const Navbar: React.FC = () => {
         </header>
       )}
 
-      {/* Right Slide-over Menu Bar Drawer */}
+      {/* Left Slide-over Menu Bar Drawer */}
       {isSidebarOpen && (
         <div
-         <div
-  className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-start animate-fadeIn"
-  onClick={() => setIsSidebarOpen(false)}
->
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-start animate-fadeIn"
+          onClick={() => setIsSidebarOpen(false)}
         >
           <div
-className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out border-r border-cream-300"
+            className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col border-r border-cream-300"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}
@@ -151,16 +149,23 @@ className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transfo
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-olive-600 text-white flex items-center justify-center font-black text-lg shadow-xs overflow-hidden">
                   {brandConfig.logoUrl ? (
-                    <img src={brandConfig.logoUrl} alt="Logo" className="w-full h-full object-contain p-1" />
+                    <img
+                      src={brandConfig.logoUrl}
+                      alt="Logo"
+                      className="w-full h-full object-contain p-1"
+                    />
                   ) : (
                     <span>🥟</span>
                   )}
                 </div>
+
                 <div>
                   <h3 className="font-black text-base text-syzlo-charcoal leading-none">
                     {brandConfig.brandName || 'SYZLO'}
                   </h3>
-                  <p className="text-[11px] text-stone-500 mt-0.5">Handmade with love like Mom</p>
+                  <p className="text-[11px] text-stone-500 mt-0.5">
+                    Handmade with love like Mom
+                  </p>
                 </div>
               </div>
 
@@ -173,17 +178,19 @@ className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transfo
               </button>
             </div>
 
-            {/* Menu Items (1. Home 2. Cart 3. Order Tracking 4. Account) */}
+            {/* Menu Items */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between px-3 mb-2">
                   <span className="text-[11px] font-black uppercase tracking-wider text-stone-400">
                     Navigation Menu
                   </span>
-                  <span className="text-[10px] text-olive-700 font-medium">Comfort Food</span>
+                  <span className="text-[10px] text-olive-700 font-medium">
+                    Comfort Food
+                  </span>
                 </div>
 
-                {/* 1. Home */}
+                {/* Home */}
                 <button
                   id="menu-nav-home"
                   onClick={() => handleNavigateCustomer('home')}
@@ -196,8 +203,17 @@ className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transfo
                   <div className="flex items-center gap-3">
                     <span className="text-lg">🏠</span>
                     <div className="text-left">
-                      <span className="block font-black text-sm">1. Home</span>
-                      <span className={`text-[10px] font-normal ${customerScreen === 'home' && currentView === 'customer' ? 'text-cream-100' : 'text-stone-500'}`}>
+                      <span className="block font-black text-sm">
+                        Home
+                      </span>
+                      <span
+                        className={`text-[10px] font-normal ${
+                          customerScreen === 'home' &&
+                          currentView === 'customer'
+                            ? 'text-cream-100'
+                            : 'text-stone-500'
+                        }`}
+                      >
                         Comfort Banners, Categories & Dishes
                       </span>
                     </div>
@@ -205,7 +221,7 @@ className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transfo
                   <ChevronRight className="w-4 h-4 opacity-70" />
                 </button>
 
-                {/* 2. Cart */}
+                {/* Cart */}
                 <button
                   id="menu-nav-cart"
                   onClick={() => handleNavigateCustomer('cart')}
@@ -219,27 +235,39 @@ className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transfo
                     <span className="text-lg">🛍️</span>
                     <div className="text-left">
                       <div className="flex items-center gap-2">
-                        <span className="block font-black text-sm">2. Cart</span>
+                        <span className="block font-black text-sm">
+                          Cart
+                        </span>
                         {totalCartCount > 0 && (
                           <span className="px-2 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-black">
                             {totalCartCount} items
                           </span>
                         )}
                       </div>
-                      <span className={`text-[10px] font-normal ${customerScreen === 'cart' && currentView === 'customer' ? 'text-cream-100' : 'text-stone-500'}`}>
-                        {totalCartCount > 0 ? `Subtotal: ${brandConfig.currencySymbol}${cartSubtotal}` : 'Your meal bag is empty'}
+                      <span
+                        className={`text-[10px] font-normal ${
+                          customerScreen === 'cart' &&
+                          currentView === 'customer'
+                            ? 'text-cream-100'
+                            : 'text-stone-500'
+                        }`}
+                      >
+                        {totalCartCount > 0
+                          ? `Subtotal: ${brandConfig.currencySymbol}${cartSubtotal}`
+                          : 'Your meal bag is empty'}
                       </span>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 opacity-70" />
                 </button>
 
-                {/* 3. Order Tracking */}
+                {/* Order Tracking */}
                 <button
                   id="menu-nav-tracking"
                   onClick={() => handleNavigateCustomer('tracking')}
                   className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold transition-all ${
-                    customerScreen === 'tracking' && currentView === 'customer'
+                    customerScreen === 'tracking' &&
+                    currentView === 'customer'
                       ? 'bg-olive-600 text-white shadow-sm'
                       : 'bg-white hover:bg-cream-100 text-stone-800 border border-cream-200'
                   }`}
@@ -248,27 +276,39 @@ className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transfo
                     <span className="text-lg">🛵</span>
                     <div className="text-left">
                       <div className="flex items-center gap-2">
-                        <span className="block font-black text-sm">3. Order Tracking</span>
+                        <span className="block font-black text-sm">
+                          Track Order
+                        </span>
                         {activeOrder && (
                           <span className="px-2 py-0.2 rounded-full bg-emerald-600 text-white text-[10px] font-extrabold animate-pulse">
                             Live Active
                           </span>
                         )}
                       </div>
-                      <span className={`text-[10px] font-normal ${customerScreen === 'tracking' && currentView === 'customer' ? 'text-cream-100' : 'text-stone-500'}`}>
-                        {activeOrder ? `Order #${activeOrder.id} • ${activeOrder.status}` : 'Track current or recent orders'}
+                      <span
+                        className={`text-[10px] font-normal ${
+                          customerScreen === 'tracking' &&
+                          currentView === 'customer'
+                            ? 'text-cream-100'
+                            : 'text-stone-500'
+                        }`}
+                      >
+                        {activeOrder
+                          ? `Order #${activeOrder.id} • ${activeOrder.status}`
+                          : 'Track current or recent orders'}
                       </span>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 opacity-70" />
                 </button>
 
-                {/* 4. Account */}
+                {/* Account */}
                 <button
                   id="menu-nav-account"
                   onClick={() => handleNavigateCustomer('profile')}
                   className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold transition-all ${
-                    customerScreen === 'profile' && currentView === 'customer'
+                    customerScreen === 'profile' &&
+                    currentView === 'customer'
                       ? 'bg-olive-600 text-white shadow-sm'
                       : 'bg-white hover:bg-cream-100 text-stone-800 border border-cream-200'
                   }`}
@@ -276,8 +316,17 @@ className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transfo
                   <div className="flex items-center gap-3">
                     <span className="text-lg">👤</span>
                     <div className="text-left">
-                      <span className="block font-black text-sm">4. Account</span>
-                      <span className={`text-[10px] font-normal ${customerScreen === 'profile' && currentView === 'customer' ? 'text-cream-100' : 'text-stone-500'}`}>
+                      <span className="block font-black text-sm">
+                        Account
+                      </span>
+                      <span
+                        className={`text-[10px] font-normal ${
+                          customerScreen === 'profile' &&
+                          currentView === 'customer'
+                            ? 'text-cream-100'
+                            : 'text-stone-500'
+                        }`}
+                      >
                         Update personal details, phone & address list
                       </span>
                     </div>
@@ -285,7 +334,7 @@ className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transfo
                   <ChevronRight className="w-4 h-4 opacity-70" />
                 </button>
               </div>
-              {/* Relaxing Comfort Quote */}
+
               <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-center">
                 <p className="text-xs font-semibold text-amber-950 leading-relaxed italic">
                   &ldquo;AI can do everything, but it still can&apos;t prepare food like Mom.&rdquo;
@@ -304,7 +353,6 @@ className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transfo
           </div>
         </div>
       )}
-
       {/* Location Modal */}
       {locationModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">

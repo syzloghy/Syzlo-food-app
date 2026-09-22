@@ -1493,7 +1493,67 @@ export const AdminDashboardOverview: React.FC<
 /* ============================================================
    COMPONENTS
 ============================================================ */
+const Kpi: React.FC<{
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  helper: string;
+}> = ({
+  icon: Icon,
+  label,
+  value,
+  helper,
+}) => (
+  <div
+    className="
+      bg-white
+      rounded-2xl
+      border border-[#E4DDD0]
+      p-4
+      shadow-[0_2px_12px_rgba(60,50,30,0.03)]
+    "
+  >
 
+    <div className="flex items-center gap-3">
+
+      <div
+        className="
+          w-12
+          h-12
+          rounded-full
+          bg-[#F1EBD9]
+          flex
+          items-center
+          justify-center
+          shrink-0
+        "
+      >
+        <Icon
+          className="w-5 h-5 text-[#565F28]"
+          strokeWidth={1.7}
+        />
+      </div>
+
+      <div className="min-w-0">
+
+        <p className="text-[9px] text-[#8F897F]">
+          {label}
+        </p>
+
+        <p className="mt-1 text-xl font-black truncate">
+          {value}
+        </p>
+
+        <p className="mt-0.5 text-[9px] text-[#A49E94]">
+          {helper}
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+);
 const Status: React.FC<{
   label: string;
   value: string;

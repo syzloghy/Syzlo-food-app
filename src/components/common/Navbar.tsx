@@ -4,6 +4,7 @@ import {
   Menu as MenuIcon,
   X,
   MapPin,
+  ChevronRight,
   House,
   ReceiptText,
   Tag,
@@ -93,7 +94,7 @@ export const Navbar: React.FC = () => {
             <button
               id="main-hamburger-button"
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 -ml-2 rounded-xl text-stone-800 hover:bg-cream-200/80 transition-colors focus:outline-hidden"
+              className="p-2 -ml-2 rounded-xl text-stone-800 hover:bg-stone-100 transition-colors focus:outline-hidden"
               title="Open Navigation Menu"
               aria-label="Open Navigation Menu"
             >
@@ -117,6 +118,7 @@ export const Navbar: React.FC = () => {
             {/* Search + Cart */}
             <div className="flex items-center gap-1 sm:gap-2 -mr-2">
 
+              {/* Search */}
               <button
                 id="header-search-button"
                 onClick={() => {
@@ -137,17 +139,18 @@ export const Navbar: React.FC = () => {
                       });
                   }, 50);
                 }}
-                className="p-2 rounded-xl text-stone-800 hover:bg-cream-200/80 transition-colors focus:outline-hidden"
+                className="p-2 rounded-xl text-stone-800 hover:bg-stone-100 transition-colors focus:outline-hidden"
                 title="Search Menu"
                 aria-label="Search Menu"
               >
                 <Search className="w-5 h-5 text-stone-800" />
               </button>
 
+              {/* Cart */}
               <button
                 id="header-cart-button"
                 onClick={() => setCustomerScreen('cart')}
-                className="p-2 rounded-xl text-stone-800 hover:bg-cream-200/80 transition-colors relative focus:outline-hidden"
+                className="p-2 rounded-xl text-stone-800 hover:bg-stone-100 transition-colors relative focus:outline-hidden"
                 title="View Cart"
                 aria-label="View Cart"
               >
@@ -159,7 +162,6 @@ export const Navbar: React.FC = () => {
                   </span>
                 )}
               </button>
-
             </div>
           </div>
         </header>
@@ -174,523 +176,257 @@ export const Navbar: React.FC = () => {
           onClick={() => setIsSidebarOpen(false)}
         >
           <div
-            className="w-[84%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col border-r border-cream-300"
+            className="w-[84%] max-w-sm bg-[#FAF7F2] h-full shadow-2xl flex flex-col border-r border-[#E8DED0]"
             onClick={(e) => e.stopPropagation()}
           >
 
-            {/* =====================================================
-                OLIVE DRAWER HEADER
-            ===================================================== */}
-            <div className="p-5 bg-[#7A7B26] border-b border-[#696A20]">
+            {/* Drawer Header */}
+            <div className="px-5 py-5 bg-white border-b border-[#E8DED0]">
               <div className="flex items-center justify-between">
 
-                <div className="flex items-center gap-3">
+                <div>
+                  <h2 className="text-xl font-black tracking-tight text-[#48521E]">
+                    {brandConfig.brandName || 'SYZLO'}
+                  </h2>
 
-                  {/* SYZLO Logo */}
-                  <div className="w-10 h-10 rounded-xl bg-[#EED7B5] text-[#7A7B26] flex items-center justify-center font-black text-lg shadow-sm overflow-hidden">
-                    {brandConfig.logoUrl ? (
-                      <img
-                        src={brandConfig.logoUrl}
-                        alt="SYZLO Logo"
-                        className="w-full h-full object-contain p-1"
-                      />
-                    ) : (
-                      <span>S</span>
-                    )}
-                  </div>
-
-                  <div>
-                    <h3 className="font-black text-base text-[#EED7B5] leading-none">
-                      {brandConfig.brandName || 'SYZLO'}
-                    </h3>
-
-                    <p className="text-[10px] text-[#EED7B5]/75 mt-1 uppercase tracking-[0.14em] font-semibold">
-                      The Bao Makers
-                    </p>
-                  </div>
-
+                  <p className="mt-1 text-[10px] font-semibold tracking-[0.18em] uppercase text-stone-500">
+                    The Bao Makers
+                  </p>
                 </div>
 
                 <button
                   onClick={() => setIsSidebarOpen(false)}
-                  className="p-2 text-[#EED7B5]/80 hover:text-[#EED7B5] hover:bg-[#696A20] rounded-xl transition-colors"
-                  title="Close Menu"
-                  aria-label="Close Menu"
+                  className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-colors"
+                  aria-label="Close menu"
                 >
-                  <X className="w-5 h-5" />
+                  <X
+                    className="w-5 h-5"
+                    strokeWidth={1.8}
+                  />
                 </button>
 
               </div>
             </div>
 
-            {/* =====================================================
-                DRAWER CONTENT — REMAINS LIGHT
-            ===================================================== */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+            {/* Drawer Navigation */}
+            <div className="flex-1 overflow-y-auto px-4 py-5">
 
               {/* Main Menu */}
-              <div className="space-y-1.5">
+              <div className="mb-6">
 
-                <div className="flex items-center justify-between px-3 mb-2">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-stone-400">
-                    Menu
-                  </span>
+                <p className="px-2 mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">
+                  Menu
+                </p>
 
-                  <span className="text-[10px] text-stone-500 font-medium">
-                    SYZLO
-                  </span>
-                </div>
+                <div className="space-y-1">
 
-                {/* Home */}
-                <button
-                  onClick={() =>
-                    handleNavigateCustomer('home')
-                  }
-                  className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold transition-all ${
-                    customerScreen === 'home' &&
-                    currentView === 'customer'
-                      ? 'bg-olive-600 text-white shadow-sm'
-                      : 'bg-white hover:bg-cream-100 text-stone-800 border border-cream-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* Home */}
+                  <button
+                    onClick={() =>
+                      handleNavigateCustomer('home')
+                    }
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <House
-                      className={`w-[18px] h-[18px] ${
-                        customerScreen === 'home' &&
-                        currentView === 'customer'
-                          ? 'text-white'
-                          : 'text-stone-600'
-                      }`}
+                      className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Home</span>
+                  </button>
 
-                    <div className="text-left">
-                      <span className="block font-black text-sm">
-                        Home
-                      </span>
-
-                      <span
-                        className={`text-[10px] font-normal ${
-                          customerScreen === 'home' &&
-                          currentView === 'customer'
-                            ? 'text-cream-100'
-                            : 'text-stone-500'
-                        }`}
-                      >
-                        Comfort Banners, Categories & Dishes
-                      </span>
-                    </div>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* My Orders */}
-                <button
-                  onClick={() =>
-                    handleNavigateCustomer('orders')
-                  }
-                  className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold transition-all ${
-                    customerScreen === 'orders' &&
-                    currentView === 'customer'
-                      ? 'bg-olive-600 text-white shadow-sm'
-                      : 'bg-white hover:bg-cream-100 text-stone-800 border border-cream-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* My Orders */}
+                  <button
+                    onClick={() =>
+                      handleNavigateCustomer('orders')
+                    }
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <ReceiptText
-                      className={`w-[18px] h-[18px] ${
-                        customerScreen === 'orders' &&
-                        currentView === 'customer'
-                          ? 'text-white'
-                          : 'text-stone-600'
-                      }`}
+                      className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>My Orders</span>
+                  </button>
 
-                    <div className="text-left">
-                      <span className="block font-black text-sm">
-                        My Orders
-                      </span>
-
-                      <span
-                        className={`text-[10px] font-normal ${
-                          customerScreen === 'orders' &&
-                          currentView === 'customer'
-                            ? 'text-cream-100'
-                            : 'text-stone-500'
-                        }`}
-                      >
-                        View your order history
-                      </span>
-                    </div>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* Offers */}
-                <button
-                  onClick={() =>
-                    handleNavigateCustomer('offers')
-                  }
-                  className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold transition-all ${
-                    customerScreen === 'offers' &&
-                    currentView === 'customer'
-                      ? 'bg-olive-600 text-white shadow-sm'
-                      : 'bg-white hover:bg-cream-100 text-stone-800 border border-cream-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* Offers */}
+                  <button
+                    onClick={() =>
+                      handleNavigateCustomer('offers')
+                    }
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <Tag
-                      className={`w-[18px] h-[18px] ${
-                        customerScreen === 'offers' &&
-                        currentView === 'customer'
-                          ? 'text-white'
-                          : 'text-stone-600'
-                      }`}
+                      className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Offers</span>
+                  </button>
 
-                    <div className="text-left">
-                      <span className="block font-black text-sm">
-                        Offers
-                      </span>
-
-                      <span
-                        className={`text-[10px] font-normal ${
-                          customerScreen === 'offers' &&
-                          currentView === 'customer'
-                            ? 'text-cream-100'
-                            : 'text-stone-500'
-                        }`}
-                      >
-                        Deals & available coupons
-                      </span>
-                    </div>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* Account */}
-                <button
-                  onClick={() =>
-                    handleNavigateCustomer('profile')
-                  }
-                  className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold transition-all ${
-                    customerScreen === 'profile' &&
-                    currentView === 'customer'
-                      ? 'bg-olive-600 text-white shadow-sm'
-                      : 'bg-white hover:bg-cream-100 text-stone-800 border border-cream-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* Account */}
+                  <button
+                    onClick={() =>
+                      handleNavigateCustomer('profile')
+                    }
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <User
-                      className={`w-[18px] h-[18px] ${
-                        customerScreen === 'profile' &&
-                        currentView === 'customer'
-                          ? 'text-white'
-                          : 'text-stone-600'
-                      }`}
+                      className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Account</span>
+                  </button>
 
-                    <div className="text-left">
-                      <span className="block font-black text-sm">
-                        Account
-                      </span>
-
-                      <span
-                        className={`text-[10px] font-normal ${
-                          customerScreen === 'profile' &&
-                          currentView === 'customer'
-                            ? 'text-cream-100'
-                            : 'text-stone-500'
-                        }`}
-                      >
-                        Personal details & account
-                      </span>
-                    </div>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
+                </div>
               </div>
 
-              {/* Your Account */}
-              <div className="space-y-1.5">
+              {/* Customer Section */}
+              <div className="mb-6">
 
-                <div className="px-3 mb-2">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-stone-400">
-                    Your Account
-                  </span>
-                </div>
+                <p className="px-2 mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">
+                  Your Account
+                </p>
 
-                {/* Favourites */}
-                <button
-                  onClick={() =>
-                    handleNavigateCustomer('profile')
-                  }
-                  className="w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold bg-white hover:bg-cream-100 text-stone-800 border border-cream-200 transition-all"
-                >
-                  <div className="flex items-center gap-3">
+                <div className="space-y-1">
 
+                  {/* Favourites */}
+                  <button
+                    onClick={() =>
+                      handleNavigateCustomer('profile')
+                    }
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <Heart
                       className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Favourites</span>
+                  </button>
 
-                    <span className="font-black text-sm">
-                      Favourites
-                    </span>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* Addresses */}
-                <button
-                  onClick={() =>
-                    handleNavigateCustomer('profile')
-                  }
-                  className="w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold bg-white hover:bg-cream-100 text-stone-800 border border-cream-200 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* Addresses */}
+                  <button
+                    onClick={() =>
+                      handleNavigateCustomer('profile')
+                    }
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <MapPin
                       className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Addresses</span>
+                  </button>
 
-                    <span className="font-black text-sm">
-                      Addresses
-                    </span>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* Help */}
-                <button
-                  onClick={() =>
-                    handleNavigateCustomer('profile')
-                  }
-                  className="w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold bg-white hover:bg-cream-100 text-stone-800 border border-cream-200 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* Help */}
+                  <button
+                    onClick={() =>
+                      handleNavigateCustomer('profile')
+                    }
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <CircleHelp
                       className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Help & Support</span>
+                  </button>
 
-                    <span className="font-black text-sm">
-                      Help & Support
-                    </span>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
+                </div>
               </div>
 
-              {/* Information */}
-              <div className="space-y-1.5">
+              {/* Information / Legal */}
+              <div className="mb-6">
 
-                <div className="px-3 mb-2">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-stone-400">
-                    Information
-                  </span>
-                </div>
+                <p className="px-2 mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">
+                  Information
+                </p>
 
-                {/* Terms */}
-                <button
-                  type="button"
-                  className="w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold bg-white hover:bg-cream-100 text-stone-800 border border-cream-200 transition-all"
-                >
-                  <div className="flex items-center gap-3">
+                <div className="space-y-1">
 
+                  {/* Terms */}
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <FileText
                       className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Terms & Conditions</span>
+                  </button>
 
-                    <span className="font-black text-sm">
-                      Terms & Conditions
-                    </span>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* Privacy */}
-                <button
-                  type="button"
-                  className="w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold bg-white hover:bg-cream-100 text-stone-800 border border-cream-200 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* Privacy */}
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <ShieldCheck
                       className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Privacy Policy</span>
+                  </button>
 
-                    <span className="font-black text-sm">
-                      Privacy Policy
-                    </span>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* Refund */}
-                <button
-                  type="button"
-                  className="w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold bg-white hover:bg-cream-100 text-stone-800 border border-cream-200 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* Refund */}
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <RotateCcw
                       className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Refund & Cancellation</span>
+                  </button>
 
-                    <span className="font-black text-sm">
-                      Refund & Cancellation
-                    </span>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* Delivery */}
-                <button
-                  type="button"
-                  className="w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold bg-white hover:bg-cream-100 text-stone-800 border border-cream-200 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* Delivery */}
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <Truck
                       className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Delivery Policy</span>
+                  </button>
 
-                    <span className="font-black text-sm">
-                      Delivery Policy
-                    </span>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* Payment */}
-                <button
-                  type="button"
-                  className="w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold bg-white hover:bg-cream-100 text-stone-800 border border-cream-200 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* Payment */}
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <CreditCard
                       className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Payment Policy</span>
+                  </button>
 
-                    <span className="font-black text-sm">
-                      Payment Policy
-                    </span>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* Contact */}
-                <button
-                  type="button"
-                  className="w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold bg-white hover:bg-cream-100 text-stone-800 border border-cream-200 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* Contact */}
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <Phone
                       className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>Contact Us</span>
+                  </button>
 
-                    <span className="font-black text-sm">
-                      Contact Us
-                    </span>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
-                {/* About */}
-                <button
-                  type="button"
-                  className="w-full p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold bg-white hover:bg-cream-100 text-stone-800 border border-cream-200 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-
+                  {/* About */}
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-stone-800 hover:bg-white transition-colors"
+                  >
                     <Info
                       className="w-[18px] h-[18px] text-stone-600"
                       strokeWidth={1.8}
                     />
+                    <span>About SYZLO</span>
+                  </button>
 
-                    <span className="font-black text-sm">
-                      About SYZLO
-                    </span>
-
-                  </div>
-
-                  <span className="text-stone-400">
-                    ›
-                  </span>
-                </button>
-
+                </div>
               </div>
 
               {/* FSSAI */}
@@ -716,16 +452,13 @@ export const Navbar: React.FC = () => {
                   </div>
 
                 </div>
-
               </div>
 
             </div>
 
-            {/* =====================================================
-                OLIVE DRAWER FOOTER
-            ===================================================== */}
-            <div className="px-5 py-4 bg-[#7A7B26] border-t border-[#696A20]">
-              <p className="text-[11px] text-[#EED7B5] text-center font-semibold tracking-wide">
+            {/* Drawer Footer */}
+            <div className="px-5 py-4 bg-white border-t border-[#E8DED0]">
+              <p className="text-[10px] text-stone-400 text-center">
                 {brandConfig.brandName || 'SYZLO'} · The Bao Makers
               </p>
             </div>

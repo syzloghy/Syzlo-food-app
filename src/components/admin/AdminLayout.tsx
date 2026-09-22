@@ -10,346 +10,634 @@ import { CouponsManagement } from './CouponsManagement';
 import { PaymentGatewaysSettings } from './PaymentGatewaysSettings';
 import { OsmLocationSettings } from './OsmLocationSettings';
 import { BrandLogoSettings } from './BrandLogoSettings';
-import BusinessInformationSettings from './BusinessInformationSettings';
+import { BusinessInformationSettings } from './BusinessInformationSettings';
 import { StaffRiderManagement } from './StaffRiderManagement';
 import { ReportsAnalytics } from './ReportsAnalytics';
 import {
   LayoutDashboard,
   ShoppingBag,
   Utensils,
-  Layers,
+  Monitor,
+  Tags,
   FolderTree,
-  Tag,
-  CreditCard,
-  Globe,
-  Store,
-  Users,
-  BarChart3,
-  Menu as MenuIcon,
-  X,
-  ChevronRight,
-  Sparkles,
+  Image,
   SlidersHorizontal,
+  TicketPercent,
+  Users,
+  Bike,
+  UserCog,
+  BarChart3,
+  CreditCard,
+  Settings,
+  Menu,
+  Bell,
+  Search,
+  ChevronDown,
+  X,
+  Store,
 } from 'lucide-react';
+
+import { KitchenDisplaySystem } from '../kds/KitchenDisplaySystem';
+import { PointOfSale } from '../pos/PointOfSale';
 
 export type AdminTabId =
   | 'overview'
   | 'orders'
-  | 'banners'
-  | 'categories'
+  | 'kitchen'
+  | 'pos'
   | 'menu'
+  | 'categories'
+  | 'banners'
   | 'addons'
   | 'coupons'
+  | 'customers'
+  | 'riders'
+  | 'staff'
+  | 'reports'
+  | 'payments'
+  | 'settings'
   | 'gateways'
   | 'map-osm'
   | 'brand'
-  | 'business'
-  | 'staff'
-  | 'reports';
-export const AdminLayout: React.FC = () => {
-  const { brandConfig, orders } = useApp();
-  const [activeTab, setActiveTab] = useState<AdminTabId>('overview');
-  const [isMenuBarOpen, setIsMenuBarOpen] = useState(false);
+  | 'business';
 
-  // Grouped Menu Bar List Items
-  const menuSections = [
+interface NavItem {
+  id: AdminTabId;
+  label: string;
+  icon: React.ElementType;
+  badge?: string;
+}
+
+export const AdminLayout: React.FC = () => {
+  const {
+    brandConfig,
+    orders,
+    riders,
+    setAdminScreen,
+  } = useApp();
+
+  const [activeTab, setActiveTab] =
+    useState<AdminTabId>('overview');
+
+  const [mobileSidebarOpen, setMobileSidebarOpen] =
+    useState(false);
+
+  const newOrderCount = orders.filter(
+    (order) =>
+      order.status === 'ORDER_PLACED' ||
+      order.status === 'placed'
+  ).length;
+
+  const navSections: {
+    title?: string;
+    items: NavItem[];
+  }[] = [
     {
-      group: 'Core Operations',
       items: [
         {
           id: 'overview',
-          label: 'Overview & Operations Dashboard',
-          icon: <LayoutDashboard className="w-4 h-4 text-olive-600" />,
-          desc: 'Live restaurant KPIs, alerts & pipeline',
+          label: 'Dashboard',
+          icon: LayoutDashboard,
         },
         {
           id: 'orders',
-          label: 'Orders & Rider Assignment',
-          icon: <ShoppingBag className="w-4 h-4 text-amber-600" />,
-          desc: 'Manage orders, assign delivery riders',
-          badge: orders.filter((o) => o.status === 'ORDER_PLACED').length > 0
-            ? `${orders.filter((o) => o.status === 'ORDER_PLACED').length} New`
-            : undefined,
+          label: 'Orders',
+          icon: ShoppingBag,
+          badge:
+            newOrderCount > 0
+              ? String(newOrderCount)
+              : undefined,
         },
         {
-          id: 'reports',
-          label: 'Reports & Sales Analytics',
-          icon: <BarChart3 className="w-4 h-4 text-emerald-600" />,
-          desc: 'Revenue, order breakdown, channel share',
+          id: 'kitchen',
+          label: 'Kitchen / KDS',
+          icon: Utensils,
+        },
+        {
+          id: 'pos',
+          label: 'POS',
+          icon: Monitor,
         },
       ],
     },
+
     {
-      group: 'Content & Customer App',
+      title: 'CATALOG',
       items: [
         {
-          id: 'banners',
-          label: 'Hero Banners (Top Carousel)',
-          icon: <Layers className="w-4 h-4 text-indigo-600" />,
-          desc: 'Upload hero banners, custom copy & discounts',
+          id: 'menu',
+          label: 'Menu',
+          icon: Tags,
         },
         {
           id: 'categories',
-          label: 'Categories & Photo Uploads',
-          icon: <FolderTree className="w-4 h-4 text-teal-600" />,
-          desc: 'Upload category cover pictures and badges',
+          label: 'Categories',
+          icon: FolderTree,
         },
         {
-          id: 'menu',
-          label: 'Food Menu & Dish Catalog',
-          icon: <Utensils className="w-4 h-4 text-rose-600" />,
-          desc: 'Pricing, descriptions, availability toggle',
+          id: 'banners',
+          label: 'Banners',
+          icon: Image,
         },
         {
           id: 'addons',
-          label: 'Add-ons & Modifiers Manager',
-          icon: <SlidersHorizontal className="w-4 h-4 text-orange-600" />,
-          desc: 'Sauces, extra dips, fillings & crunch',
+          label: 'Add-ons',
+          icon: SlidersHorizontal,
         },
         {
           id: 'coupons',
-          label: 'Mode-Specific Coupons (Pickup / Delivery)',
-          icon: <Tag className="w-4 h-4 text-purple-600" />,
-          desc: 'Create discount codes with channel rules',
+          label: 'Coupons',
+          icon: TicketPercent,
         },
       ],
     },
+
     {
-      group: 'Settings & Integrations',
+      title: 'PEOPLE',
       items: [
         {
-          id: 'gateways',
-          label: 'Payment Gateways (Razorpay, Cashfree, UPI)',
-          icon: <CreditCard className="w-4 h-4 text-blue-600" />,
-          desc: 'Configure API keys, webhooks & test mode',
+          id: 'customers',
+          label: 'Customers',
+          icon: Users,
         },
         {
-          id: 'map-osm',
-          label: 'OpenStreetMap (OSM) & Free Location',
-          icon: <Globe className="w-4 h-4 text-emerald-600" />,
-          desc: 'Kitchen coordinates, radius & map compliance',
+          id: 'riders',
+          label: 'Riders',
+          icon: Bike,
         },
-        {
-          id: 'brand',
-          label: 'Brand Identity & Logo Upload',
-          icon: <Store className="w-4 h-4 text-amber-700" />,
-          desc: 'Upload brand logo, FSSAI & GSTIN info',
-        },
-        {
-          id: 'business',
-          label: 'Business Information',
-          icon: <Store className="w-4 h-4 text-olive-600" />,
-          desc: 'Business details, contact, FSSAI & delivery settings',
-},
         {
           id: 'staff',
-          label: 'Staff Roster & Rider Fleet',
-          icon: <Users className="w-4 h-4 text-stone-600" />,
-          desc: 'Fleet availability, shift tracking & phones',
+          label: 'Staff',
+          icon: UserCog,
+        },
+      ],
+    },
+
+    {
+      title: 'FINANCE & REPORTS',
+      items: [
+        {
+          id: 'reports',
+          label: 'Reports',
+          icon: BarChart3,
+        },
+        {
+          id: 'payments',
+          label: 'Payments',
+          icon: CreditCard,
+        },
+      ],
+    },
+
+    {
+      title: 'SETTINGS',
+      items: [
+        {
+          id: 'settings',
+          label: 'Settings',
+          icon: Settings,
         },
       ],
     },
   ];
 
-  const handleSelectMenuItem = (id: AdminTabId) => {
+  const handleNavigation = (id: AdminTabId) => {
     setActiveTab(id);
-    // Requirement: When clicked, immediately close the menu bar
-    setIsMenuBarOpen(false);
+    setMobileSidebarOpen(false);
+
+    if (id === 'overview') {
+      setAdminScreen('dashboard');
+    }
+
+    if (id === 'orders') {
+      setAdminScreen('orders');
+    }
+
+    if (id === 'kitchen') {
+      setAdminScreen('kitchen');
+    }
+
+    if (id === 'pos') {
+      setAdminScreen('pos');
+    }
+
+    if (id === 'menu') {
+      setAdminScreen('menu');
+    }
+
+    if (id === 'categories') {
+      setAdminScreen('categories');
+    }
+
+    if (id === 'banners') {
+      setAdminScreen('banners');
+    }
+
+    if (id === 'addons') {
+      setAdminScreen('addons');
+    }
+
+    if (id === 'coupons') {
+      setAdminScreen('coupons');
+    }
+
+    if (id === 'riders') {
+      setAdminScreen('riders');
+    }
+
+    if (id === 'staff') {
+      setAdminScreen('staff');
+    }
+
+    if (id === 'reports') {
+      setAdminScreen('reports');
+    }
+
+    if (id === 'gateways') {
+      setAdminScreen('gateways');
+    }
+
+    if (id === 'map-osm') {
+      setAdminScreen('map-osm');
+    }
+
+    if (id === 'brand') {
+      setAdminScreen('brand');
+    }
+
+    if (id === 'business') {
+      setAdminScreen('business');
+    }
   };
 
-  const currentItem = menuSections
-    .flatMap((s) => s.items)
-    .find((i) => i.id === activeTab);
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'orders':
+        return <OrderManagement />;
+
+      case 'kitchen':
+        return <KitchenDisplaySystem />;
+
+      case 'pos':
+        return <PointOfSale />;
+
+      case 'menu':
+        return <MenuManagement />;
+
+      case 'categories':
+        return <CategoryManagement />;
+
+      case 'banners':
+        return <HeroBannersManagement />;
+
+      case 'addons':
+        return <AddonsManagement />;
+
+      case 'coupons':
+        return <CouponsManagement />;
+
+      case 'riders':
+      case 'staff':
+      case 'customers':
+        return <StaffRiderManagement />;
+
+      case 'reports':
+        return <ReportsAnalytics />;
+
+      case 'payments':
+      case 'gateways':
+        return <PaymentGatewaysSettings />;
+
+      case 'settings':
+        return <BusinessInformationSettings />;
+
+      case 'map-osm':
+        return <OsmLocationSettings />;
+
+      case 'brand':
+        return <BrandLogoSettings />;
+
+      case 'business':
+        return <BusinessInformationSettings />;
+
+      default:
+        return (
+          <AdminDashboardOverview
+            onNavigateTab={(tab) => {
+              if (tab === 'orders') {
+                handleNavigation('orders');
+              }
+
+              if (tab === 'menu') {
+                handleNavigation('menu');
+              }
+
+              if (tab === 'coupons') {
+                handleNavigation('coupons');
+              }
+
+              if (tab === 'reports') {
+                handleNavigation('reports');
+              }
+            }}
+          />
+        );
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#FAF6EF] p-3 sm:p-6 pb-28">
-      <div className="max-w-7xl mx-auto space-y-5">
-        
-        {/* Admin Navigation Bar */}
+    <div className="min-h-screen bg-[#F7F3EB] text-[#20221A]">
 
-<div className="bg-white p-4 sm:p-5 rounded-3xl border border-cream-200 shadow-sm flex items-center justify-between gap-4">
+      {/* MOBILE OVERLAY */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
 
-            {/* Logo from Brand Config */}
-            <div className="w-10 h-10 rounded-2xl bg-olive-600 text-white flex items-center justify-center font-black shadow-md overflow-hidden shrink-0">
+      {/* ======================================================
+          SIDEBAR
+      ======================================================= */}
+      <aside
+        className={`
+          fixed left-0 top-0 bottom-0 z-50
+          w-[225px]
+          bg-[#F8F4EC]
+          border-r border-[#E5D8C2]
+          flex flex-col
+          transition-transform duration-200
+          lg:translate-x-0
+          ${
+            mobileSidebarOpen
+              ? 'translate-x-0'
+              : '-translate-x-full'
+          }
+        `}
+      >
+
+        {/* BRAND */}
+        <div className="h-[78px] px-6 flex items-center border-b border-[#E9DDC9]">
+
+          <div>
+            <div className="flex items-center gap-2">
+
               {brandConfig.logoUrl ? (
-                <img src={brandConfig.logoUrl} alt="Logo" className="w-full h-full object-contain p-1" />
+                <img
+                  src={brandConfig.logoUrl}
+                  alt="SYZLO"
+                  className="w-10 h-10 object-contain"
+                />
               ) : (
-                <span>🥟</span>
+                <div className="w-10 h-10 rounded-xl bg-[#565F28] flex items-center justify-center">
+                  <Store className="w-5 h-5 text-white" />
+                </div>
               )}
-            </div>
 
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-black text-base sm:text-lg text-syzlo-charcoal">
-                  {brandConfig.brandName || 'SYZLO'} Dashboard
+              <div>
+                <h1 className="text-xl font-black tracking-wide">
+                  {brandConfig.brandName || 'SYZLO'}
                 </h1>
-                <span className="px-2 py-0.5 rounded-full bg-olive-100 text-olive-800 text-[10px] font-black uppercase">
-                  Admin
-                </span>
+
+                <p className="text-[8px] uppercase tracking-[0.22em] text-stone-500 font-bold">
+                  THE BAO MAKERS
+                </p>
               </div>
-              <p className="text-xs text-stone-500 hidden sm:block">
-                {currentItem?.label || 'Central Management System'}
+
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              setMobileSidebarOpen(false)
+            }
+            className="ml-auto lg:hidden"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+        </div>
+
+        {/* NAVIGATION */}
+        <div className="flex-1 overflow-y-auto px-3 py-5">
+
+          {navSections.map((section, sectionIndex) => (
+            <div
+              key={section.title || sectionIndex}
+              className="mb-5"
+            >
+
+              {section.title && (
+                <p className="px-3 mb-2 text-[9px] font-black tracking-[0.16em] text-stone-400">
+                  {section.title}
+                </p>
+              )}
+
+              <div className="space-y-1">
+
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const active =
+                    activeTab === item.id;
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() =>
+                        handleNavigation(item.id)
+                      }
+                      className={`
+                        w-full
+                        flex items-center gap-3
+                        px-3 py-2.5
+                        rounded-xl
+                        text-left
+                        transition-all
+                        ${
+                          active
+                            ? 'bg-[#E7E2CE] text-[#20221A] font-bold'
+                            : 'text-stone-700 hover:bg-[#EEE8DC]'
+                        }
+                      `}
+                    >
+
+                      <Icon
+                        className={`
+                          w-[18px] h-[18px]
+                          shrink-0
+                          ${
+                            active
+                              ? 'text-[#20221A]'
+                              : 'text-stone-700'
+                          }
+                        `}
+                        strokeWidth={1.8}
+                      />
+
+                      <span className="flex-1 text-sm">
+                        {item.label}
+                      </span>
+
+                      {item.badge && (
+                        <span className="min-w-[22px] h-[20px] px-1.5 rounded-full bg-[#D9423A] text-white text-[10px] font-black flex items-center justify-center">
+                          {item.badge}
+                        </span>
+                      )}
+
+                      {item.id === 'pos' && (
+                        <span className="px-2 py-0.5 rounded-full bg-[#DDEBD4] text-[#427239] text-[9px] font-black">
+                          New
+                        </span>
+                      )}
+
+                    </button>
+                  );
+                })}
+
+              </div>
+            </div>
+          ))}
+
+        </div>
+
+        {/* SIDEBAR FOOTER */}
+        <div className="p-4 border-t border-[#E5D8C2]">
+
+          <div className="rounded-2xl overflow-hidden bg-[#31351F] h-[125px] relative">
+
+            <div className="absolute inset-0 bg-gradient-to-t from-[#263018] to-transparent" />
+
+            <div className="absolute bottom-4 left-4 right-4">
+              <p className="text-white text-sm font-black leading-tight">
+                Good Food
+                <br />
+                More People
+                <br />
+                Happier Cities.
               </p>
             </div>
 
-          {/* Action: Open List Menu Bar */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsMenuBarOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-syzlo-charcoal hover:bg-black text-white rounded-2xl text-xs font-bold transition-colors shadow-sm"
-              title="Open Navigation Menu Bar"
-            >
-              <MenuIcon className="w-4 h-4 text-amber-400" />
-              <span>Menu & Settings List</span>
-            </button>
           </div>
+
         </div>
-    
-        {/* Quick Horizontal Scroller for Most Frequent Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto bg-cream-100 p-1.5 rounded-2xl border border-cream-300 no-scrollbar">
-          {[
-            { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
-            { id: 'orders', label: 'Orders & Riders', icon: <ShoppingBag className="w-3.5 h-3.5" /> },
-            { id: 'banners', label: 'Hero Banners', icon: <Layers className="w-3.5 h-3.5" /> },
-            { id: 'categories', label: 'Categories', icon: <FolderTree className="w-3.5 h-3.5" /> },
-            { id: 'menu', label: 'Menu Items', icon: <Utensils className="w-3.5 h-3.5" /> },
-            { id: 'addons', label: 'Add-ons', icon: <SlidersHorizontal className="w-3.5 h-3.5" /> },
-            { id: 'coupons', label: 'Coupons (Modes)', icon: <Tag className="w-3.5 h-3.5" /> },
-            { id: 'gateways', label: 'Payment Gateways', icon: <CreditCard className="w-3.5 h-3.5" /> },
-            { id: 'map-osm', label: 'OSM Map', icon: <Globe className="w-3.5 h-3.5" /> },
-           { id: 'brand', label: 'Brand & Logo', icon: <Store className="w-3.5 h-3.5" /> },
-          { id: 'business', label: 'Business Info', icon: <Store className="w-3.5 h-3.5" /> },
-          { id: 'staff', label: 'Staff & Riders', icon: <Users className="w-3.5 h-3.5" /> },
-          { id: 'reports', label: 'Reports', icon: <BarChart3 className="w-3.5 h-3.5" /> },
-          ].map((tab) => {
-            const active = activeTab === tab.id;
-            return (
+
+      </aside>
+
+      {/* ======================================================
+          MAIN AREA
+      ======================================================= */}
+      <main className="lg:ml-[225px] min-h-screen">
+
+        {/* TOP BAR */}
+        <header className="h-[78px] bg-[#FBF9F5] border-b border-[#E7DDCE] px-4 sm:px-6 lg:px-7 flex items-center">
+
+          <div className="flex items-center gap-4 w-full">
+
+            <button
+              type="button"
+              onClick={() =>
+                setMobileSidebarOpen(true)
+              }
+              className="lg:hidden"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+
+            {/* OUTLET */}
+            <div className="hidden sm:block">
+
+              <div className="flex items-center gap-2">
+
+                <h2 className="text-base font-black">
+                  SYZLO Guwahati
+                </h2>
+
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#DFF0DD] text-[#2F7134] text-[10px] font-black">
+                  <span className="w-2 h-2 rounded-full bg-[#24913A]" />
+                  Open
+                </span>
+
+              </div>
+
+              <p className="text-[11px] text-stone-500 mt-1">
+                Outlet ID: SYZ-GHY-001
+                <span className="mx-2">|</span>
+                Guwahati, Assam
+              </p>
+
+            </div>
+
+            {/* SEARCH */}
+            <div className="hidden md:flex flex-1 max-w-[390px] mx-auto">
+
+              <div className="w-full h-10 bg-white border border-[#DED8CF] rounded-xl flex items-center gap-2 px-3">
+
+                <Search className="w-4 h-4 text-stone-400" />
+
+                <span className="text-xs text-stone-400">
+                  Search orders, customers, menu...
+                </span>
+
+              </div>
+
+            </div>
+
+            {/* RIGHT */}
+            <div className="ml-auto flex items-center gap-4">
+
               <button
-                key={tab.id}
-                onClick={() => handleSelectMenuItem(tab.id as AdminTabId)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                  active
-                    ? 'bg-olive-600 text-white shadow-xs'
-                    : 'text-stone-700 hover:text-syzlo-charcoal hover:bg-cream-200'
-                }`}
+                type="button"
+                className="relative w-9 h-9 rounded-full bg-white border border-[#E0D8CC] flex items-center justify-center"
               >
-                {tab.icon}
-                <span>{tab.label}</span>
+                <Bell className="w-4 h-4" />
+
+                {newOrderCount > 0 && (
+                  <span className="absolute -right-1 -top-1 w-5 h-5 rounded-full bg-[#D9423A] text-white text-[9px] font-black flex items-center justify-center">
+                    {newOrderCount}
+                  </span>
+                )}
+
               </button>
-            );
-          })}
-        </div>
 
-        {/* Tab View Container */}
-        <div>
-          {activeTab === 'overview' && (
-            <AdminDashboardOverview onNavigateTab={(t) => handleSelectMenuItem(t as AdminTabId)} />
-          )}
-          {activeTab === 'orders' && <OrderManagement />}
-          {activeTab === 'banners' && <HeroBannersManagement />}
-          {activeTab === 'categories' && <CategoryManagement />}
-          {activeTab === 'menu' && <MenuManagement />}
-          {activeTab === 'addons' && <AddonsManagement />}
-          {activeTab === 'coupons' && <CouponsManagement />}
-          {activeTab === 'gateways' && <PaymentGatewaysSettings />}
-          {activeTab === 'map-osm' && <OsmLocationSettings />}
-          {activeTab === 'brand' && <BrandLogoSettings />}
-          {activeTab === 'business' && <BusinessInformationSettings />}
-          {activeTab === 'staff' && <StaffRiderManagement />}
-          {activeTab === 'reports' && <ReportsAnalytics />}
-        </div>
-      </div>
+              <div className="hidden sm:flex items-center gap-2">
 
-      {/* Slide-over List Menu Bar Drawer (Closes when clicked) */}
-      {isMenuBarOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs flex justify-end">
-          <div
-            className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out border-l border-cream-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Drawer Header */}
-            <div className="p-5 border-b border-cream-200 flex items-center justify-between bg-cream-50">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-olive-600 text-white flex items-center justify-center font-bold">
-                  <MenuIcon className="w-5 h-5" />
+                <div className="w-9 h-9 rounded-full bg-[#5E5C2B] text-white flex items-center justify-center font-black">
+                  A
                 </div>
-                <div>
-                  <h3 className="font-black text-base text-syzlo-charcoal">
-                    Admin Menu Bar
-                  </h3>
-                  <p className="text-[11px] text-stone-500">
-                    Click any item to navigate (auto-closes)
+
+                <div className="hidden md:block">
+                  <p className="text-sm font-bold">
+                    Admin
+                  </p>
+
+                  <p className="text-[10px] text-stone-500">
+                    Outlet Manager
                   </p>
                 </div>
+
+                <ChevronDown className="w-4 h-4 text-stone-500" />
+
               </div>
 
-              <button
-                onClick={() => setIsMenuBarOpen(false)}
-                className="p-2 text-stone-400 hover:text-stone-700 hover:bg-cream-200 rounded-xl transition-colors"
-                title="Close Menu Bar"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
 
-            {/* List Menu Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              {menuSections.map((section) => (
-                <div key={section.group} className="space-y-2">
-                  <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-stone-400 px-3">
-                    {section.group}
-                  </h4>
-                  <div className="space-y-1">
-                    {section.items.map((item) => {
-                      const isSelected = activeTab === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => handleSelectMenuItem(item.id as AdminTabId)}
-                          className={`w-full text-left p-3 rounded-2xl flex items-center justify-between gap-3 transition-all ${
-                            isSelected
-                              ? 'bg-olive-50 border border-olive-300 text-olive-900 shadow-2xs'
-                              : 'hover:bg-cream-100 text-stone-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-xl bg-white shadow-2xs border border-cream-200 flex items-center justify-center shrink-0">
-                              {item.icon}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-xs leading-tight">
-                                  {item.label}
-                                </span>
-                                {item.badge && (
-                                  <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-black">
-                                    {item.badge}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[10px] text-stone-400 line-clamp-1 mt-0.5">
-                                {item.desc}
-                              </p>
-                            </div>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-stone-400 shrink-0" />
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Drawer Footer */}
-            <div className="p-4 bg-cream-50 border-t border-cream-200 text-center">
-              <p className="text-[11px] text-stone-500 font-medium">
-                {brandConfig.brandName || 'SYZLO'} Restaurant Management OS
-              </p>
-            </div>
           </div>
+
+        </header>
+
+        {/* CONTENT */}
+        <div className="p-4 sm:p-5 lg:p-6 xl:p-7">
+
+          <div className="max-w-[1320px] mx-auto">
+            {renderContent()}
+          </div>
+
         </div>
-      )}
+
+      </main>
+
     </div>
   );
 };

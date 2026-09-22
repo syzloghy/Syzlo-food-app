@@ -10,7 +10,6 @@ import { CouponsManagement } from './CouponsManagement';
 import { PaymentGatewaysSettings } from './PaymentGatewaysSettings';
 import { OsmLocationSettings } from './OsmLocationSettings';
 import { BrandLogoSettings } from './BrandLogoSettings';
-import { BusinessInformationSettings } from './BusinessInformationSettings';
 import { StaffRiderManagement } from './StaffRiderManagement';
 import { ReportsAnalytics } from './ReportsAnalytics';
 import {
@@ -264,10 +263,6 @@ export const AdminLayout: React.FC = () => {
     if (id === 'brand') {
       setAdminScreen('brand');
     }
-
-    if (id === 'business') {
-      setAdminScreen('business');
-    }
   };
 
   const renderContent = () => {
@@ -308,17 +303,31 @@ export const AdminLayout: React.FC = () => {
       case 'gateways':
         return <PaymentGatewaysSettings />;
 
-      case 'settings':
-        return <BusinessInformationSettings />;
-
       case 'map-osm':
         return <OsmLocationSettings />;
 
       case 'brand':
         return <BrandLogoSettings />;
 
-      case 'business':
-        return <BusinessInformationSettings />;
+    case 'settings':
+  return (
+    <div className="bg-white rounded-xl border border-[#E6DED1] p-8">
+      <h2 className="text-xl font-black">Settings</h2>
+      <p className="mt-2 text-sm text-stone-500">
+        Business settings will be connected here.
+      </p>
+    </div>
+  );
+
+case 'business':
+  return (
+    <div className="bg-white rounded-xl border border-[#E6DED1] p-8">
+      <h2 className="text-xl font-black">Business Settings</h2>
+      <p className="mt-2 text-sm text-stone-500">
+        Business settings will be connected here.
+      </p>
+    </div>
+  );
 
       default:
         return (

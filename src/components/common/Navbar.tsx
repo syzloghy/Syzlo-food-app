@@ -165,7 +165,7 @@ export const Navbar: React.FC = () => {
             <X className="w-5 h-5" strokeWidth={1.8} />
           </button>
         </div>
-      </div>
+      </div></div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-4 py-5">
@@ -309,7 +309,7 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+    
 
       {/* Footer */}
       <div className="px-5 py-4 bg-white border-t border-[#E8DED0]">

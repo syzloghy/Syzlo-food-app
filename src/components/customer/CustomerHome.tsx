@@ -99,7 +99,7 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
   return (
     <div className="min-h-screen pb-32 sm:pb-24 bg-[#FAF7F2]">
       {/* 1. LOCATION & ORDER MODE BAR (Matches reference image syz.png) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 pb-2 flex items-center justify-between gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 pt-3 pb-2 flex items-center justify-between gap-1 sm:gap-2">
         {/* Left: Deliver to Guwahati */}
         <button
           id="location-picker-btn"
@@ -121,7 +121,7 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
         </button>
 
 {/* Right: Mode Toggle */}
-<div className="flex items-center p-1 bg-[#EDE6D6] rounded-full border border-cream-300/60 shrink-0">
+<div className="flex items-center p-0.5 sm:p-1 bg-[#EDE6D6] rounded-full border border-cream-300/60 shrink-0">
   {/* Delivery */}
   <button
     id="order-mode-delivery"

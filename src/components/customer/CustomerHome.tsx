@@ -83,9 +83,10 @@ export const CustomerHome: React.FC = () => {
   const popularItems = filteredItems.filter((item) => item.isBestseller);
   const remainingItems = filteredItems.filter((item) => !item.isBestseller);
 
-  const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-const getCategoryImage = (categoryId: string, fallback: string) =>
-  const handleCategoryClick = (category: FoodCategory) => {
+ const getCategoryImage = (categoryId: string, fallback: string) =>
+  categoriesConfig.find((category) => category.id === categoryId)?.image || fallback;
+
+const handleCategoryClick = (category: FoodCategory) => {
   setSelectedCategory(category);
 
   setTimeout(() => {
@@ -99,7 +100,6 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
     });
   }, 50);
 };
-  categoriesConfig.find((category) => category.id === categoryId)?.image || fallback;
   
   // Breakdown with packaging charge
   const breakdown = orderService.calculateOrderBreakdown(
@@ -253,7 +253,7 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
 
     {/* 1. All Category */}
     <button
-      onClick={() => setSelectedCategory('ALL')}
+      onClick={() => handleCategoryClick('ALL')}
       className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
     >
       <div

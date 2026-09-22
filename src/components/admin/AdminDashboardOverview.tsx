@@ -1461,30 +1461,204 @@ export const AdminDashboardOverview: React.FC<
 
 </div>
 
-     {/* =====================================================
-    PAYMENT SUMMARY
-====================================================== */}
-<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+         {/* =====================================================
+          PAYMENT SUMMARY
+      ====================================================== */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-  <Payment
-    icon={WalletCards}
-    label="UPI Payments"
-    value={0}
-  />
+        <Payment
+          icon={WalletCards}
+          label="UPI Payments"
+          value={0}
+        />
 
-  <Payment
-    icon={Banknote}
-    label="Cash Payments"
-    value={0}
-  />
+        <Payment
+          icon={Banknote}
+          label="Cash Payments"
+          value={0}
+        />
 
-  <Payment
-    icon={CreditCard}
-    label="Online Payments"
-    value={0}
-  />
+        <Payment
+          icon={CreditCard}
+          label="Online Payments"
+          value={0}
+        />
 
-</div>
+      </div>
+
+    </div>
+  );
+};
+
+/* ============================================================
+   COMPONENTS
+============================================================ */
+
+const Status: React.FC<{
+  label: string;
+  value: string;
+}> = ({ label, value }) => {
+  const isReady = value === 'Yes';
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+
+      <div className="flex items-center gap-2.5 min-w-0">
+
+        <span
+          className={`
+            w-2 h-2
+            rounded-full
+            shrink-0
+            ${
+              isReady
+                ? 'bg-[#4D8A43]'
+                : 'bg-[#B6A77A]'
+            }
+          `}
+        />
+
+        <span className="text-[10px] text-[#67645C] truncate">
+          {label}
+        </span>
+
+      </div>
+
+      <span
+        className={`
+          text-[10px]
+          font-bold
+          shrink-0
+          ${
+            isReady
+              ? 'text-[#47753D]'
+              : 'text-[#807656]'
+          }
+        `}
+      >
+        {value}
+      </span>
+
+    </div>
+  );
+};
+
+
+const Action: React.FC<{
+  icon: React.ElementType;
+  label: React.ReactNode;
+  onClick: () => void;
+}> = ({
+  icon: Icon,
+  label,
+  onClick,
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="
+      h-[82px]
+      rounded-xl
+      bg-[#F3F5E8]
+      border border-[#E7E9D8]
+      hover:bg-[#E8EBD8]
+      hover:border-[#D9DEC0]
+      flex
+      flex-col
+      items-center
+      justify-center
+      gap-2
+      transition-all
+      duration-150
+    "
+  >
+
+    <div
+      className="
+        w-8
+        h-8
+        rounded-lg
+        bg-white
+        flex
+        items-center
+        justify-center
+        shadow-[0_1px_3px_rgba(50,50,20,0.05)]
+      "
+    >
+      <Icon
+        className="w-[15px] h-[15px] text-[#565F28]"
+        strokeWidth={1.8}
+      />
+    </div>
+
+    <span
+      className="
+        text-[9px]
+        font-bold
+        text-[#34362D]
+        text-center
+        leading-tight
+      "
+    >
+      {label}
+    </span>
+
+  </button>
+);
+
+
+const Filter: React.FC<{
+  label: string;
+  active?: boolean;
+}> = ({
+  label,
+  active,
+}) => (
+  <span
+    className={`
+      inline-flex
+      items-center
+      justify-center
+      min-h-[27px]
+      px-3
+      rounded-lg
+      whitespace-nowrap
+      text-[9px]
+      font-bold
+      border
+      transition-colors
+      ${
+        active
+          ? 'bg-[#565F28] border-[#565F28] text-white'
+          : 'bg-[#F7F5F0] border-[#E9E3D8] text-[#706C64]'
+      }
+    `}
+  >
+    {label}
+  </span>
+);
+
+
+const Glance: React.FC<{
+  label: string;
+  value: string | number;
+}> = ({
+  label,
+  value,
+}) => (
+  <div className="flex items-center justify-between py-2.5 border-b border-[#F0EBE3] last:border-0">
+
+    <span className="text-xs text-stone-500">
+      {label}
+    </span>
+
+    <span className="text-sm font-black">
+      {value}
+    </span>
+
+  </div>
+);
+
 
 const Payment: React.FC<{
   icon: React.ElementType;
@@ -1550,198 +1724,6 @@ const Payment: React.FC<{
   </div>
 );
 
-const Status: React.FC<{
-  label: string;
-  value: string;
-}> = ({ label, value }) => {
-  const isReady =
-    value === 'Yes';
-
-  return (
-    <div className="flex items-center justify-between gap-3">
-
-      <div className="flex items-center gap-2.5 min-w-0">
-
-        <span
-          className={`
-            w-2 h-2
-            rounded-full
-            shrink-0
-            ${
-              isReady
-                ? 'bg-[#4D8A43]'
-                : 'bg-[#B6A77A]'
-            }
-          `}
-        />
-
-        <span className="text-[10px] text-[#67645C] truncate">
-          {label}
-        </span>
-
-      </div>
-
-      <span
-        className={`
-          text-[10px]
-          font-bold
-          shrink-0
-          ${
-            isReady
-              ? 'text-[#47753D]'
-              : 'text-[#807656]'
-          }
-        `}
-      >
-        {value}
-      </span>
-
-    </div>
-  );
-};
-
-const Action: React.FC<{
-  icon: React.ElementType;
-  label: React.ReactNode;
-  onClick: () => void;
-}> = ({
-  icon: Icon,
-  label,
-  onClick,
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className="
-      h-[82px]
-      rounded-xl
-      bg-[#F3F5E8]
-      border border-[#E7E9D8]
-      hover:bg-[#E8EBD8]
-      hover:border-[#D9DEC0]
-      flex
-      flex-col
-      items-center
-      justify-center
-      gap-2
-      transition-all
-      duration-150
-    "
-  >
-
-    <div
-      className="
-        w-8
-        h-8
-        rounded-lg
-        bg-white
-        flex
-        items-center
-        justify-center
-        shadow-[0_1px_3px_rgba(50,50,20,0.05)]
-      "
-    >
-      <Icon
-        className="w-[15px] h-[15px] text-[#565F28]"
-        strokeWidth={1.8}
-      />
-    </div>
-
-    <span
-      className="
-        text-[9px]
-        font-bold
-        text-[#34362D]
-        text-center
-        leading-tight
-      "
-    >
-      {label}
-    </span>
-
-  </button>
-);
-
-const Filter: React.FC<{
-  label: string;
-  active?: boolean;
-}> = ({
-  label,
-  active,
-}) => (
-  <span
-    className={`
-      inline-flex
-      items-center
-      justify-center
-      min-h-[27px]
-      px-3
-      rounded-lg
-      whitespace-nowrap
-      text-[9px]
-      font-bold
-      border
-      transition-colors
-      ${
-        active
-          ? 'bg-[#565F28] border-[#565F28] text-white'
-          : 'bg-[#F7F5F0] border-[#E9E3D8] text-[#706C64]'
-      }
-    `}
-  >
-    {label}
-  </span>
-);
-
-const Glance: React.FC<{
-  label: string;
-  value: string | number;
-}> = ({
-  label,
-  value,
-}) => (
-  <div className="flex items-center justify-between py-2.5 border-b border-[#F0EBE3] last:border-0">
-
-    <span className="text-xs text-stone-500">
-      {label}
-    </span>
-
-    <span className="text-sm font-black">
-      {value}
-    </span>
-
-  </div>
-);
-
-const Payment: React.FC<{
-  icon: React.ElementType;
-  label: string;
-  value: number;
-}> = ({
-  icon: Icon,
-  label,
-  value,
-}) => (
-  <div className="bg-white rounded-xl border border-[#E6DED1] p-4 flex items-center gap-3">
-
-    <div className="w-10 h-10 rounded-xl bg-[#F1EBD9] flex items-center justify-center">
-      <Icon className="w-4 h-4 text-[#7A7B26]" />
-    </div>
-
-    <div>
-
-      <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
-        {label}
-      </p>
-
-      <p className="text-xl font-black mt-1">
-        {value}
-      </p>
-
-    </div>
-
-  </div>
-);
 
 const Empty: React.FC<{
   icon: React.ElementType;
@@ -1754,7 +1736,10 @@ const Empty: React.FC<{
 }) => (
   <div className="py-10 text-center">
 
-    <Icon className="w-7 h-7 mx-auto text-[#CFC7B8]" />
+    <Icon
+      className="w-7 h-7 mx-auto text-[#CFC7B8]"
+      strokeWidth={1.6}
+    />
 
     <p className="mt-3 text-xs font-bold text-stone-500">
       {title}
@@ -1766,6 +1751,7 @@ const Empty: React.FC<{
 
   </div>
 );
+
 
 const PlusIcon: React.FC<{
   className?: string;

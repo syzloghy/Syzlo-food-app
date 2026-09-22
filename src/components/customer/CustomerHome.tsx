@@ -120,32 +120,37 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
           </div>
         </button>
 
-        {/* Right: Mode Toggle (Delivery vs Pickup pill) */}
-        <div className="flex items-center p-1 bg-[#EDE6D6] rounded-full border border-cream-300/60">
-          <button
-            id="order-mode-delivery"
-            onClick={() => setOrderType('DELIVERY')}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-              orderType === 'DELIVERY'
-                ? 'bg-[#565F28] text-white shadow-xs'
-                : 'text-stone-700 hover:text-stone-900'
-            }`}
-          >
-            Delivery
-          </button>
-          <button
-            id="order-mode-pickup"
-            onClick={() => setOrderType('PICKUP')}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-              orderType === 'PICKUP'
-                ? 'bg-[#565F28] text-white shadow-xs'
-                : 'text-stone-700 hover:text-stone-900'
-            }`}
-          >
-            Pickup
-          </button>
-        </div>
-      </div>
+       {/* Right: Mode Toggle */}
+<div className="flex items-center p-1 bg-[#EDE6D6] rounded-full border border-cream-300/60">
+  {/* Delivery */}
+  <button
+    id="order-mode-delivery"
+    onClick={() => setOrderType('DELIVERY')}
+    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+      orderType === 'DELIVERY'
+        ? 'bg-[#565F28] text-white shadow-xs'
+        : 'text-stone-700 hover:text-stone-900'
+    }`}
+  >
+    Delivery
+  </button>
+
+  {/* Takeaway / Dine-in */}
+  <button
+    id="order-mode-takeaway-dinein"
+    onClick={() => {
+      setOrderType('PICKUP');
+      setCustomerScreen('checkout');
+    }}
+    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+      orderType === 'PICKUP' || orderType === 'DINE-IN'
+        ? 'bg-[#565F28] text-white shadow-xs'
+        : 'text-stone-700 hover:text-stone-900'
+    }`}
+  >
+    Takeaway / Dine-in
+  </button>
+</div>
 
       {/* 2. LANDSCAPE HERO BANNER FOR MOBILE & DESKTOP (Matches reference image syz.png) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-2">

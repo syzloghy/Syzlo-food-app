@@ -231,7 +231,6 @@ export const AdminDashboardOverview: React.FC<
           KPI ROW
       ====================================================== */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
-
         <Kpi
           icon={ShoppingBag}
           label="Total Orders"
@@ -858,32 +857,59 @@ const Kpi: React.FC<{
   value,
   helper,
 }) => (
-  <div className="bg-white rounded-xl border border-[#E6DED1] p-4">
-
+  <div
+    className="
+      bg-white
+      rounded-2xl
+      border border-[#E4DDD0]
+      px-4
+      py-4
+      min-h-[108px]
+      transition-all
+      duration-150
+      hover:border-[#D6CEBE]
+      hover:shadow-[0_4px_18px_rgba(70,60,40,0.05)]
+    "
+  >
     <div className="flex items-center gap-3">
 
-      <div className="w-12 h-12 rounded-full bg-[#F0E7D4] flex items-center justify-center">
-        <Icon className="w-6 h-6 text-[#80600D]" />
+      {/* ICON */}
+      <div
+        className="
+          w-11
+          h-11
+          rounded-full
+          bg-[#F0EBD9]
+          flex
+          items-center
+          justify-center
+          shrink-0
+        "
+      >
+        <Icon
+          className="w-[19px] h-[19px] text-[#565F28]"
+          strokeWidth={1.8}
+        />
       </div>
 
-      <div className="min-w-0">
+      {/* CONTENT */}
+      <div className="min-w-0 flex-1">
 
-        <p className="text-xs text-stone-500">
+        <p className="text-[10px] font-semibold text-[#858177] leading-none">
           {label}
         </p>
 
-        <p className="mt-1 text-xl sm:text-2xl font-black truncate">
+        <p className="mt-2 text-[22px] leading-none font-black tracking-tight text-[#20221A] truncate">
           {value}
         </p>
 
-        <p className="mt-0.5 text-[10px] text-stone-400">
+        <p className="mt-2 text-[9px] font-medium text-[#A09A90]">
           {helper}
         </p>
 
       </div>
 
     </div>
-
   </div>
 );
 

@@ -584,204 +584,458 @@ export const AdminDashboardOverview: React.FC<
 
 </div>
 
-      {/* =====================================================
-          LIVE ORDERS + GLANCE
-      ====================================================== */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3">
+    {/* =====================================================
+    LIVE ORDERS + GLANCE
+====================================================== */}
+<div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
 
-        {/* LIVE ORDERS */}
-        <section className="xl:col-span-8 bg-white rounded-xl border border-[#E6DED1] overflow-hidden">
+  {/* =====================================================
+      LIVE ORDERS
+  ====================================================== */}
+  <section
+    className="
+      xl:col-span-8
+      bg-white
+      rounded-2xl
+      border border-[#E4DDD0]
+      overflow-hidden
+      shadow-[0_2px_12px_rgba(60,50,30,0.03)]
+    "
+  >
 
-          <div className="p-4 border-b border-[#EEE8DE]">
+    {/* HEADER */}
+    <div className="px-5 pt-5 pb-4 border-b border-[#EEE8DE]">
 
-            <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
 
-              <h3 className="text-lg font-black">
-                Live Orders
-                <span className="ml-1 text-[#7A7B26]">
-                  ({todayOrders.length})
-                </span>
-              </h3>
+        <div className="flex items-center gap-2.5">
 
-              <button
-                type="button"
-                onClick={() =>
-                  onNavigateTab('orders')
-                }
-                className="text-xs font-bold text-[#397A35] flex items-center gap-1"
-              >
-                View all
-                <ArrowRight className="w-3 h-3" />
-              </button>
+          <span className="w-2 h-2 rounded-full bg-[#565F28]" />
 
-            </div>
+          <h3 className="text-[17px] font-black tracking-tight">
+            Live Orders
+          </h3>
 
-            <div className="flex gap-2 mt-3 overflow-x-auto">
+          <span
+            className="
+              min-w-[24px]
+              h-[21px]
+              px-1.5
+              rounded-full
+              bg-[#F1EBD9]
+              text-[#565F28]
+              text-[9px]
+              font-black
+              flex
+              items-center
+              justify-center
+            "
+          >
+            {todayOrders.length}
+          </span>
 
-              <Filter
-                label={`All (${todayOrders.length})`}
-                active
-              />
+        </div>
 
-              <Filter
-                label={`New (${newOrders})`}
-              />
+        <button
+          type="button"
+          onClick={() =>
+            onNavigateTab('orders')
+          }
+          className="
+            text-[10px]
+            font-bold
+            text-[#565F28]
+            flex
+            items-center
+            gap-1
+            hover:underline
+          "
+        >
+          View all
 
-              <Filter
-                label={`Preparing (${preparingOrders})`}
-              />
-
-              <Filter
-                label={`Ready (${readyOrders})`}
-              />
-
-              <Filter
-                label={`Out for Delivery (${outForDelivery})`}
-              />
-
-            </div>
-
-          </div>
-
-          {todayOrders.length === 0 ? (
-            <div className="py-12 text-center">
-
-              <ShoppingBag className="w-8 h-8 mx-auto text-[#CFC7B8]" />
-
-              <p className="mt-3 text-sm font-bold text-stone-500">
-                No live orders yet
-              </p>
-
-              <p className="mt-1 text-xs text-stone-400">
-                New orders will appear here when SYZLO starts.
-              </p>
-
-            </div>
-          ) : (
-            <div>
-              {todayOrders.slice(0, 6).map(
-                (order) => (
-                  <div
-                    key={order.id}
-                    className="px-4 py-3 border-b border-[#F0EBE3] grid grid-cols-12 gap-3 items-center"
-                  >
-
-                    <div className="col-span-2">
-                      <p className="text-xs font-black text-[#8C2019]">
-                        #{order.id}
-                      </p>
-                    </div>
-
-                    <div className="col-span-3">
-                      <p className="text-xs font-bold">
-                        {order.customerName}
-                      </p>
-
-                      <p className="text-[10px] text-stone-400">
-                        {order.items.length} item
-                        {order.items.length !== 1
-                          ? 's'
-                          : ''}
-                      </p>
-                    </div>
-
-                    <div className="col-span-2">
-                      <p className="text-xs">
-                        {order.orderType}
-                      </p>
-                    </div>
-
-                    <div className="col-span-2">
-                      <span className="px-2 py-1 rounded-full bg-[#E7F2E4] text-[#367737] text-[10px] font-bold">
-                        {String(
-                          order.status
-                        ).replaceAll(
-                          '_',
-                          ' '
-                        )}
-                      </span>
-                    </div>
-
-                    <div className="col-span-3 text-right">
-                      <p className="text-sm font-black">
-                        {money(
-                          Number(
-                            order.grandTotal || 0
-                          )
-                        )}
-                      </p>
-                    </div>
-
-                  </div>
-                )
-              )}
-            </div>
-          )}
-
-        </section>
-
-        {/* TODAY AT A GLANCE */}
-        <section className="xl:col-span-4 bg-white rounded-xl border border-[#E6DED1] p-4">
-
-          <div className="flex items-center justify-between">
-
-            <h3 className="text-lg font-black">
-              Today at a Glance
-            </h3>
-
-            <Activity className="w-5 h-5 text-[#7A7B26]" />
-
-          </div>
-
-          <div className="mt-5 space-y-1">
-
-            <Glance
-              label="Orders"
-              value={todayOrders.length}
-            />
-
-            <Glance
-              label="Revenue"
-              value={money(revenue)}
-            />
-
-            <Glance
-              label="Items Sold"
-              value={itemsSold}
-            />
-
-            <Glance
-              label="Discounts"
-              value={money(discounts)}
-            />
-
-            <Glance
-              label="Delivery"
-              value={deliveryCount}
-            />
-
-            <Glance
-              label="Pickup"
-              value={pickupCount}
-            />
-
-            <Glance
-              label="Dine-in"
-              value={dineInCount}
-            />
-
-          </div>
-
-          <div className="mt-5 h-20 rounded-lg bg-[#F7F3EB] flex items-center justify-center">
-            <span className="text-[11px] text-stone-400">
-              Sales graph will appear after the first sale
-            </span>
-          </div>
-
-        </section>
+          <ArrowRight
+            className="w-3 h-3"
+            strokeWidth={1.8}
+          />
+        </button>
 
       </div>
 
+
+      {/* FILTERS */}
+      <div className="flex gap-2 mt-4 overflow-x-auto pb-0.5">
+
+        <Filter
+          label={`All (${todayOrders.length})`}
+          active
+        />
+
+        <Filter
+          label={`New (${newOrders})`}
+        />
+
+        <Filter
+          label={`Preparing (${preparingOrders})`}
+        />
+
+        <Filter
+          label={`Ready (${readyOrders})`}
+        />
+
+        <Filter
+          label={`Out for Delivery (${outForDelivery})`}
+        />
+
+      </div>
+
+    </div>
+
+
+    {/* CONTENT */}
+    {todayOrders.length === 0 ? (
+
+      <div className="min-h-[285px] flex flex-col items-center justify-center px-6 text-center">
+
+        <div
+          className="
+            w-14
+            h-14
+            rounded-2xl
+            bg-[#F5F1E8]
+            flex
+            items-center
+            justify-center
+          "
+        >
+          <ShoppingBag
+            className="w-6 h-6 text-[#C8C0B1]"
+            strokeWidth={1.6}
+          />
+        </div>
+
+        <p className="mt-4 text-[13px] font-bold text-[#626057]">
+          No live orders yet
+        </p>
+
+        <p className="mt-1.5 max-w-[280px] text-[10px] leading-relaxed text-[#A19B91]">
+          New orders will appear here automatically
+          when customers start ordering from SYZLO.
+        </p>
+
+        <button
+          type="button"
+          onClick={() =>
+            onNavigateTab('orders')
+          }
+          className="
+            mt-4
+            h-8
+            px-3.5
+            rounded-lg
+            border border-[#DDD6C9]
+            bg-white
+            text-[9px]
+            font-bold
+            text-[#565F28]
+            hover:bg-[#F7F4ED]
+            transition-colors
+          "
+        >
+          Open Orders
+        </button>
+
+      </div>
+
+    ) : (
+
+      <div>
+
+        {/* TABLE HEADER */}
+        <div
+          className="
+            hidden
+            md:grid
+            grid-cols-12
+            gap-3
+            px-5
+            py-3
+            bg-[#FAF8F4]
+            border-b border-[#EEE8DE]
+            text-[8px]
+            uppercase
+            tracking-[0.12em]
+            font-black
+            text-[#99938A]
+          "
+        >
+          <div className="col-span-2">
+            Order
+          </div>
+
+          <div className="col-span-3">
+            Customer
+          </div>
+
+          <div className="col-span-2">
+            Type
+          </div>
+
+          <div className="col-span-2">
+            Status
+          </div>
+
+          <div className="col-span-3 text-right">
+            Amount
+          </div>
+        </div>
+
+
+        {/* ORDERS */}
+        {todayOrders
+          .slice(0, 6)
+          .map((order) => (
+
+            <div
+              key={order.id}
+              className="
+                px-5
+                py-4
+                border-b
+                border-[#F0EBE3]
+                last:border-b-0
+                hover:bg-[#FCFBF8]
+                transition-colors
+              "
+            >
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-3 items-center">
+
+                {/* ORDER */}
+                <div className="md:col-span-2">
+
+                  <p className="text-[10px] font-black text-[#565F28]">
+                    #{order.id}
+                  </p>
+
+                  <p className="mt-1 text-[9px] text-[#A09A90]">
+                    {order.items.length} item
+                    {order.items.length !== 1
+                      ? 's'
+                      : ''}
+                  </p>
+
+                </div>
+
+
+                {/* CUSTOMER */}
+                <div className="md:col-span-3">
+
+                  <p className="text-[11px] font-bold text-[#292B24]">
+                    {order.customerName}
+                  </p>
+
+                  <p className="mt-1 text-[9px] text-[#A09A90]">
+                    {order.orderType}
+                  </p>
+
+                </div>
+
+
+                {/* TYPE */}
+                <div className="md:col-span-2">
+
+                  <span
+                    className="
+                      inline-flex
+                      px-2
+                      py-1
+                      rounded-md
+                      bg-[#F3F0E8]
+                      text-[#68645A]
+                      text-[9px]
+                      font-bold
+                    "
+                  >
+                    {String(order.orderType)
+                      .replaceAll('_', ' ')}
+                  </span>
+
+                </div>
+
+
+                {/* STATUS */}
+                <div className="md:col-span-2">
+
+                  <span
+                    className="
+                      inline-flex
+                      px-2
+                      py-1
+                      rounded-md
+                      bg-[#E7EEDC]
+                      text-[#4B713E]
+                      text-[9px]
+                      font-bold
+                      capitalize
+                    "
+                  >
+                    {String(order.status)
+                      .replaceAll('_', ' ')}
+                  </span>
+
+                </div>
+
+
+                {/* AMOUNT */}
+                <div className="md:col-span-3 md:text-right">
+
+                  <p className="text-[12px] font-black text-[#292B24]">
+                    {money(
+                      Number(
+                        order.grandTotal || 0
+                      )
+                    )}
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          ))}
+
+      </div>
+
+    )}
+
+  </section>
+
+
+  {/* =====================================================
+      TODAY AT A GLANCE
+  ====================================================== */}
+  <section
+    className="
+      xl:col-span-4
+      bg-white
+      rounded-2xl
+      border border-[#E4DDD0]
+      p-5
+      shadow-[0_2px_12px_rgba(60,50,30,0.03)]
+    "
+  >
+
+    <div className="flex items-start justify-between">
+
+      <div>
+
+        <p className="text-[9px] uppercase tracking-[0.15em] text-[#969080] font-bold">
+          Performance
+        </p>
+
+        <h3 className="mt-1 text-[17px] font-black tracking-tight">
+          Today at a Glance
+        </h3>
+
+      </div>
+
+      <div
+        className="
+          w-8
+          h-8
+          rounded-lg
+          bg-[#F1EBD9]
+          flex
+          items-center
+          justify-center
+        "
+      >
+        <Activity
+          className="w-[16px] h-[16px] text-[#565F28]"
+          strokeWidth={1.7}
+        />
+      </div>
+
+    </div>
+
+
+    {/* METRICS */}
+    <div className="mt-5">
+
+      <Glance
+        label="Orders"
+        value={todayOrders.length}
+      />
+
+      <Glance
+        label="Revenue"
+        value={money(revenue)}
+      />
+
+      <Glance
+        label="Items Sold"
+        value={itemsSold}
+      />
+
+      <Glance
+        label="Discounts"
+        value={money(discounts)}
+      />
+
+      <Glance
+        label="Delivery"
+        value={deliveryCount}
+      />
+
+      <Glance
+        label="Pickup"
+        value={pickupCount}
+      />
+
+      <Glance
+        label="Dine-in"
+        value={dineInCount}
+      />
+
+    </div>
+
+
+    {/* GRAPH EMPTY STATE */}
+    <div
+      className="
+        mt-5
+        h-[82px]
+        rounded-xl
+        bg-[#F7F4ED]
+        border border-[#EEE8DE]
+        flex
+        flex-col
+        items-center
+        justify-center
+        text-center
+      "
+    >
+
+      <div className="flex items-end gap-1 h-5">
+
+        <span className="w-1.5 h-2 rounded-sm bg-[#D7D2C5]" />
+        <span className="w-1.5 h-3 rounded-sm bg-[#CCC6B8]" />
+        <span className="w-1.5 h-4 rounded-sm bg-[#C1BAAA]" />
+        <span className="w-1.5 h-2.5 rounded-sm bg-[#D7D2C5]" />
+        <span className="w-1.5 h-5 rounded-sm bg-[#B9B19F]" />
+
+      </div>
+
+      <span className="mt-2 text-[9px] text-[#9D978D]">
+        Sales graph will appear after the first sale
+      </span>
+
+    </div>
+
+  </section>
+
+</div>
       {/* =====================================================
           BOTTOM ROW
       ====================================================== */}
@@ -1188,18 +1442,27 @@ const Action: React.FC<{
 const Filter: React.FC<{
   label: string;
   active?: boolean;
-}> = ({ label, active }) => (
+}> = ({
+  label,
+  active,
+}) => (
   <span
     className={`
-      px-3 py-1.5
+      inline-flex
+      items-center
+      justify-center
+      min-h-[27px]
+      px-3
       rounded-lg
       whitespace-nowrap
-      text-[10px]
+      text-[9px]
       font-bold
+      border
+      transition-colors
       ${
         active
-          ? 'bg-[#565F28] text-white'
-          : 'bg-[#F3F1ED] text-stone-600'
+          ? 'bg-[#565F28] border-[#565F28] text-white'
+          : 'bg-[#F7F5F0] border-[#E9E3D8] text-[#706C64]'
       }
     `}
   >

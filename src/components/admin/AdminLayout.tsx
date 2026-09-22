@@ -81,11 +81,14 @@ export const AdminLayout: React.FC = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] =
     useState(false);
 
-  const newOrderCount = orders.filter(
-    (order) =>
+const newOrderCount = orders.filter(
+  (order) =>
+    Boolean(order.supabaseOrderId) &&
+    (
       order.status === 'ORDER_PLACED' ||
       order.status === 'placed'
-  ).length;
+    )
+).length;
 
   const navSections: {
     title?: string;

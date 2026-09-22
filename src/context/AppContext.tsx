@@ -143,12 +143,44 @@ toggleHeroBannerStatus: (id: string) => Promise<void>;
   assignRiderToOrder: (orderId: string, riderId: string) => void;
   cancelOrder: (orderId: string, reason?: string) => void;
 
-  // Rider Operations
-  activeRiderId: string;
-  setActiveRiderId: (id: string) => void;
-  updateRiderLocation: (riderId: string, coords: { lat: number; lng: number }) => void;
-  toggleRiderStatus: (riderId: string, status: 'ONLINE' | 'OFFLINE' | 'BUSY') => void;
+ // Rider Operations
+activeRiderId: string;
+setActiveRiderId: (id: string) => void;
 
+addRider: (rider: {
+  name: string;
+  phone: string;
+  vehicle: string;
+  vehicleNumber?: string;
+}) => Promise<void>;
+
+updateRider: (
+  riderId: string,
+  updates: {
+    name?: string;
+    phone?: string;
+    vehicle?: string;
+    vehicleNumber?: string;
+  }
+) => Promise<void>;
+
+deleteRider: (riderId: string) => Promise<void>;
+
+updateRiderLocation: (
+  riderId: string,
+  coords: { lat: number; lng: number }
+) => void;
+
+toggleRiderStatus: (
+  riderId: string,
+  status: 'ONLINE' | 'OFFLINE' | 'BUSY'
+) => void;
+
+toggleRiderAvailability: (
+  riderId: string,
+  isAvailable: boolean
+) => Promise<void>;
+  
   // Menu Operations
   addMenuItem: (item: Omit<MenuItem, 'id'>) => void;
   updateMenuItem: (id: string, updates: Partial<MenuItem>) => void;
@@ -327,6 +359,74 @@ return () => {
 }, []);
   const [orders, setOrders] = useState<CustomerOrder[]>(INITIAL_ORDERS);
   const [riders, setRiders] = useState<Rider[]>(INITIAL_RIDERS);
+  useEffect(() => {
+  const loadRidersFromSupabase = async () => {
+    const { data, error } = await supabase
+      .from('riders')
+      .select(`
+        id,
+        user_id,
+        name,
+        phone,
+        vehicle_type,
+        vehicle_number,
+        is_online,
+        is_available,
+        current_latitude,
+        current_longitude,
+        status
+      `)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Failed to load riders from Supabase:', error);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn('Supabase riders table is empty.');
+      return;
+    }
+
+    const supabaseRiders: Rider[] = data.map((rider: any) => ({
+      id: String(rider.id),
+      userId: rider.user_id || undefined,
+      name: rider.name || '',
+      phone: rider.phone || '',
+      vehicle: rider.vehicle_type || 'Scooter',
+      vehicleNumber: rider.vehicle_number || '',
+      status:
+        String(rider.status || 'offline').toUpperCase() as
+          | 'ONLINE'
+          | 'OFFLINE'
+          | 'BUSY',
+      isAvailable: Boolean(rider.is_available),
+      currentOrderId: undefined,
+
+      // Kept only for compatibility.
+      // SYZLO does not use live rider tracking.
+      location: {
+        lat: Number(rider.current_latitude || 0),
+        lng: Number(rider.current_longitude || 0),
+      },
+
+      completedDeliveries: 0,
+      totalDeliveries: 0,
+      rating: 0,
+      batteryLevel: undefined,
+    }));
+
+    console.log(
+      'Supabase riders loaded:',
+      supabaseRiders.length,
+      supabaseRiders
+    );
+
+    setRiders(supabaseRiders);
+  };
+
+  loadRidersFromSupabase();
+}, []);
   const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);
   const [staff] = useState<StaffMember[]>(INITIAL_STAFF);
   const [customerProfile, setCustomerProfile] = useState<CustomerProfile>(INITIAL_CUSTOMER_PROFILE);
@@ -1047,7 +1147,187 @@ const toggleHeroBannerStatus = async (
       })
     );
   };
+// Rider CRUD
+const addRider = async (rider: {
+  name: string;
+  phone: string;
+  vehicle: string;
+  vehicleNumber?: string;
+}) => {
+  try {
+    const { data, error } = await supabase
+      .from('riders')
+      .insert({
+        name: rider.name.trim(),
+        phone: rider.phone.trim(),
+        vehicle_type: rider.vehicle.trim() || 'Scooter',
+        vehicle_number: rider.vehicleNumber?.trim() || null,
+        is_online: false,
+        is_available: true,
+        status: 'offline',
+      })
+      .select()
+      .single();
 
+    if (error) {
+      console.error('Failed to add rider:', error);
+      throw error;
+    }
+
+    const newRider: Rider = {
+      id: String(data.id),
+      userId: data.user_id || undefined,
+      name: data.name,
+      phone: data.phone,
+      vehicle: data.vehicle_type || 'Scooter',
+      vehicleNumber: data.vehicle_number || '',
+      status: 'OFFLINE',
+      isAvailable: Boolean(data.is_available),
+      currentOrderId: undefined,
+
+      // Not used for live tracking.
+      location: {
+        lat: Number(data.current_latitude || 0),
+        lng: Number(data.current_longitude || 0),
+      },
+
+      completedDeliveries: 0,
+      totalDeliveries: 0,
+      rating: 0,
+    };
+
+    setRiders((prev) => [...prev, newRider]);
+  } catch (error) {
+    console.error('Add rider failed:', error);
+    throw error;
+  }
+};
+
+const updateRider = async (
+  riderId: string,
+  updates: {
+    name?: string;
+    phone?: string;
+    vehicle?: string;
+    vehicleNumber?: string;
+  }
+) => {
+  try {
+    const dbUpdates: Record<string, any> = {};
+
+    if (updates.name !== undefined) {
+      dbUpdates.name = updates.name.trim();
+    }
+
+    if (updates.phone !== undefined) {
+      dbUpdates.phone = updates.phone.trim();
+    }
+
+    if (updates.vehicle !== undefined) {
+      dbUpdates.vehicle_type = updates.vehicle.trim();
+    }
+
+    if (updates.vehicleNumber !== undefined) {
+      dbUpdates.vehicle_number =
+        updates.vehicleNumber.trim() || null;
+    }
+
+    const { error } = await supabase
+      .from('riders')
+      .update(dbUpdates)
+      .eq('id', riderId);
+
+    if (error) {
+      console.error('Failed to update rider:', error);
+      throw error;
+    }
+
+    setRiders((prev) =>
+      prev.map((rider) =>
+        rider.id === riderId
+          ? {
+              ...rider,
+              ...(updates.name !== undefined
+                ? { name: updates.name }
+                : {}),
+              ...(updates.phone !== undefined
+                ? { phone: updates.phone }
+                : {}),
+              ...(updates.vehicle !== undefined
+                ? { vehicle: updates.vehicle }
+                : {}),
+              ...(updates.vehicleNumber !== undefined
+                ? { vehicleNumber: updates.vehicleNumber }
+                : {}),
+            }
+          : rider
+      )
+    );
+  } catch (error) {
+    console.error('Update rider failed:', error);
+    throw error;
+  }
+};
+
+const deleteRider = async (riderId: string) => {
+  try {
+    const { error } = await supabase
+      .from('riders')
+      .delete()
+      .eq('id', riderId);
+
+    if (error) {
+      console.error('Failed to delete rider:', error);
+      throw error;
+    }
+
+    setRiders((prev) =>
+      prev.filter((rider) => rider.id !== riderId)
+    );
+  } catch (error) {
+    console.error('Delete rider failed:', error);
+    throw error;
+  }
+};
+
+const toggleRiderAvailability = async (
+  riderId: string,
+  isAvailable: boolean
+) => {
+  try {
+    const { error } = await supabase
+      .from('riders')
+      .update({
+        is_available: isAvailable,
+      })
+      .eq('id', riderId);
+
+    if (error) {
+      console.error(
+        'Failed to update rider availability:',
+        error
+      );
+      throw error;
+    }
+
+    setRiders((prev) =>
+      prev.map((rider) =>
+        rider.id === riderId
+          ? {
+              ...rider,
+              isAvailable,
+            }
+          : rider
+      )
+    );
+  } catch (error) {
+    console.error(
+      'Toggle rider availability failed:',
+      error
+    );
+    throw error;
+  }
+};
   // Rider updates
   const updateRiderLocation = (riderId: string, coords: { lat: number; lng: number }) => {
     setRiders((prev) =>
@@ -1338,10 +1618,14 @@ const deleteMenuItem = async (id: string) => {
         assignRider,
         assignRiderToOrder: assignRider,
         cancelOrder,
-        activeRiderId,
-        setActiveRiderId,
-        updateRiderLocation,
-        toggleRiderStatus,
+       activeRiderId,
+setActiveRiderId,
+addRider,
+updateRider,
+deleteRider,
+updateRiderLocation,
+toggleRiderStatus,
+toggleRiderAvailability,
         addMenuItem,
         updateMenuItem,
         toggleItemAvailability,

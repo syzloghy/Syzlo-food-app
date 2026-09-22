@@ -1037,293 +1037,516 @@ export const AdminDashboardOverview: React.FC<
 
 </div>
       {/* =====================================================
-          BOTTOM ROW
-      ====================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-12 gap-3">
+    BOTTOM ROW
+====================================================== */}
+<div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-12 gap-4">
 
-        {/* TOP ITEMS */}
-        <section className="xl:col-span-5 bg-white rounded-xl border border-[#E6DED1] p-4">
+  {/* =====================================================
+      TOP SELLING ITEMS
+  ====================================================== */}
+  <section
+    className="
+      xl:col-span-5
+      bg-white
+      rounded-2xl
+      border border-[#E4DDD0]
+      p-5
+      shadow-[0_2px_12px_rgba(60,50,30,0.03)]
+    "
+  >
 
-          <div className="flex items-center justify-between">
+    <div className="flex items-start justify-between">
 
-            <h3 className="text-lg font-black">
-              Top Selling Items
-            </h3>
+      <div>
 
-            <span className="text-xs text-stone-400">
-              Today
-            </span>
+        <p className="text-[9px] uppercase tracking-[0.15em] text-[#969080] font-bold">
+          Products
+        </p>
 
-          </div>
-
-          {topItems.length === 0 ? (
-            <Empty
-              icon={Package}
-              title="No sales yet"
-              text="Your best-selling items will appear here."
-            />
-          ) : (
-            <div className="mt-4">
-              {topItems.map(
-                (item, index) => (
-                  <div
-                    key={item.name}
-                    className="flex items-center gap-3 py-2.5 border-b border-[#F0EBE3]"
-                  >
-
-                    <div className="w-7 h-7 rounded-full bg-[#F4E7C8] flex items-center justify-center text-xs font-black">
-                      {index + 1}
-                    </div>
-
-                    <div className="flex-1">
-                      <p className="text-xs font-bold">
-                        {item.name}
-                      </p>
-
-                      <p className="text-[10px] text-stone-400">
-                        {item.quantity} sold
-                      </p>
-                    </div>
-
-                    <p className="text-xs font-black">
-                      {money(item.sales)}
-                    </p>
-
-                  </div>
-                )
-              )}
-            </div>
-          )}
-
-        </section>
-
-        {/* RIDERS */}
-        <section className="xl:col-span-4 bg-white rounded-xl border border-[#E6DED1] p-4">
-
-          <div className="flex items-center justify-between">
-
-            <h3 className="text-lg font-black">
-              Rider Status
-            </h3>
-
-            <span className="text-xs font-bold text-[#397A35]">
-              View all →
-            </span>
-
-          </div>
-
-          {riders.length === 0 ? (
-            <Empty
-              icon={Bike}
-              title="No riders"
-              text="Add riders to manage deliveries."
-            />
-          ) : (
-            <div className="mt-4">
-
-              {riders.slice(0, 4).map(
-                (rider) => {
-
-                  const status =
-                    rider.status ===
-                    'BUSY'
-                      ? 'On Delivery'
-                      : rider.status ===
-                          'ONLINE' ||
-                        rider.isAvailable
-                        ? 'Available'
-                        : 'Offline';
-
-                  return (
-                    <div
-                      key={rider.id}
-                      className="flex items-center gap-3 py-2.5 border-b border-[#F0EBE3]"
-                    >
-
-                      <div className="w-9 h-9 rounded-full bg-[#EEE8D9] flex items-center justify-center">
-                        <Bike className="w-4 h-4 text-[#7A7B26]" />
-                      </div>
-
-                      <div className="flex-1">
-
-                        <p className="text-xs font-bold">
-                          {rider.name}
-                        </p>
-
-                        <p className="text-[10px] text-stone-400">
-                          {rider.vehicle ||
-                            'Delivery rider'}
-                        </p>
-
-                      </div>
-
-                      <span className="px-2 py-1 rounded-full bg-[#DDEED8] text-[#397A35] text-[9px] font-bold">
-                        {status}
-                      </span>
-
-                    </div>
-                  );
-                }
-              )}
-
-            </div>
-          )}
-
-        </section>
-
-        {/* ACTIVITY */}
-        <section className="xl:col-span-3 bg-white rounded-xl border border-[#E6DED1] p-4">
-
-          <div className="flex items-center justify-between">
-
-            <h3 className="text-lg font-black">
-              Recent Activity
-            </h3>
-
-            <Activity className="w-4 h-4 text-[#7A7B26]" />
-
-          </div>
-
-          {todayOrders.length === 0 ? (
-            <Empty
-              icon={Activity}
-              title="No activity"
-              text="Recent order events will appear here."
-            />
-          ) : (
-            <div className="mt-4 space-y-4">
-
-              {todayOrders
-                .slice(0, 5)
-                .map((order) => (
-                  <div
-                    key={order.id}
-                    className="flex gap-3"
-                  >
-
-                    <div className="w-7 h-7 rounded-full bg-[#E7EBCF] flex items-center justify-center shrink-0">
-                      <Box className="w-3.5 h-3.5 text-[#565F28]" />
-                    </div>
-
-                    <div>
-
-                      <p className="text-[11px] font-bold">
-                        Order received
-                      </p>
-
-                      <p className="text-[10px] text-stone-400">
-                        #{order.id}
-                      </p>
-
-                    </div>
-
-                  </div>
-                ))}
-
-            </div>
-          )}
-
-        </section>
+        <h3 className="mt-1 text-[17px] font-black tracking-tight">
+          Top Selling Items
+        </h3>
 
       </div>
 
-      {/* =====================================================
-          PAYMENT SUMMARY
-      ====================================================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-
-        <Payment
-          icon={WalletCards}
-          label="UPI Payments"
-          value={0}
-        />
-
-        <Payment
-          icon={Banknote}
-          label="Cash Payments"
-          value={0}
-        />
-
-        <Payment
-          icon={CreditCard}
-          label="Online Payments"
-          value={0}
-        />
-
-      </div>
+      <span className="text-[9px] font-medium text-[#99938A]">
+        Today
+      </span>
 
     </div>
-  );
-};
 
-/* ============================================================
-   COMPONENTS
-============================================================ */
 
-const Kpi: React.FC<{
+    {topItems.length === 0 ? (
+
+      <div className="min-h-[150px] flex flex-col items-center justify-center text-center">
+
+        <div
+          className="
+            w-11
+            h-11
+            rounded-xl
+            bg-[#F5F1E8]
+            flex
+            items-center
+            justify-center
+          "
+        >
+          <Package
+            className="w-[19px] h-[19px] text-[#C7BFAF]"
+            strokeWidth={1.6}
+          />
+        </div>
+
+        <p className="mt-3 text-[11px] font-bold text-[#68655D]">
+          No sales yet
+        </p>
+
+        <p className="mt-1 text-[9px] text-[#A29C92]">
+          Your best-selling items will appear here.
+        </p>
+
+      </div>
+
+    ) : (
+
+      <div className="mt-4">
+
+        {topItems.map((item, index) => (
+
+          <div
+            key={item.name}
+            className="
+              flex
+              items-center
+              gap-3
+              py-3
+              border-b
+              border-[#F0EBE3]
+              last:border-b-0
+            "
+          >
+
+            <div
+              className="
+                w-7
+                h-7
+                rounded-lg
+                bg-[#F1EBD9]
+                flex
+                items-center
+                justify-center
+                text-[9px]
+                font-black
+                text-[#565F28]
+                shrink-0
+              "
+            >
+              {String(index + 1).padStart(2, '0')}
+            </div>
+
+            <div className="flex-1 min-w-0">
+
+              <p className="text-[11px] font-bold truncate">
+                {item.name}
+              </p>
+
+              <p className="mt-1 text-[9px] text-[#A09A90]">
+                {item.quantity} sold
+              </p>
+
+            </div>
+
+            <p className="text-[11px] font-black shrink-0">
+              {money(item.sales)}
+            </p>
+
+          </div>
+
+        ))}
+
+      </div>
+
+    )}
+
+  </section>
+
+
+  {/* =====================================================
+      RIDER STATUS
+  ====================================================== */}
+  <section
+    className="
+      xl:col-span-4
+      bg-white
+      rounded-2xl
+      border border-[#E4DDD0]
+      p-5
+      shadow-[0_2px_12px_rgba(60,50,30,0.03)]
+    "
+  >
+
+    <div className="flex items-start justify-between">
+
+      <div>
+
+        <p className="text-[9px] uppercase tracking-[0.15em] text-[#969080] font-bold">
+          Delivery
+        </p>
+
+        <h3 className="mt-1 text-[17px] font-black tracking-tight">
+          Rider Status
+        </h3>
+
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onNavigateTab('reports')}
+        className="
+          text-[9px]
+          font-bold
+          text-[#565F28]
+          hover:underline
+        "
+      >
+        View all →
+      </button>
+
+    </div>
+
+
+    {riders.length === 0 ? (
+
+      <div className="min-h-[150px] flex flex-col items-center justify-center text-center">
+
+        <div
+          className="
+            w-11
+            h-11
+            rounded-xl
+            bg-[#F5F1E8]
+            flex
+            items-center
+            justify-center
+          "
+        >
+          <Bike
+            className="w-[19px] h-[19px] text-[#C7BFAF]"
+            strokeWidth={1.6}
+          />
+        </div>
+
+        <p className="mt-3 text-[11px] font-bold text-[#68655D]">
+          No riders
+        </p>
+
+        <p className="mt-1 text-[9px] text-[#A29C92]">
+          Add riders to manage deliveries.
+        </p>
+
+      </div>
+
+    ) : (
+
+      <div className="mt-4">
+
+        {riders.slice(0, 4).map((rider) => {
+
+          const status =
+            rider.status === 'BUSY'
+              ? 'On Delivery'
+              : rider.status === 'ONLINE' ||
+                rider.isAvailable
+                ? 'Available'
+                : 'Offline';
+
+          const statusClass =
+            status === 'On Delivery'
+              ? 'bg-[#F2E8D0] text-[#80652B]'
+              : status === 'Available'
+                ? 'bg-[#E1EEDB] text-[#47733D]'
+                : 'bg-[#EEEAE3] text-[#8B867D]';
+
+          return (
+            <div
+              key={rider.id}
+              className="
+                flex
+                items-center
+                gap-3
+                py-3
+                border-b
+                border-[#F0EBE3]
+                last:border-b-0
+              "
+            >
+
+              <div
+                className="
+                  w-9
+                  h-9
+                  rounded-full
+                  bg-[#F1EBD9]
+                  flex
+                  items-center
+                  justify-center
+                  shrink-0
+                "
+              >
+                <Bike
+                  className="w-[15px] h-[15px] text-[#565F28]"
+                  strokeWidth={1.7}
+                />
+              </div>
+
+
+              <div className="flex-1 min-w-0">
+
+                <p className="text-[11px] font-bold truncate">
+                  {rider.name}
+                </p>
+
+                <p className="mt-1 text-[9px] text-[#A09A90] truncate">
+                  {rider.vehicle || 'Delivery rider'}
+                </p>
+
+              </div>
+
+
+              <span
+                className={`
+                  px-2
+                  py-1
+                  rounded-full
+                  text-[8px]
+                  font-bold
+                  whitespace-nowrap
+                  ${statusClass}
+                `}
+              >
+                {status}
+              </span>
+
+            </div>
+          );
+
+        })}
+
+      </div>
+
+    )}
+
+  </section>
+
+
+  {/* =====================================================
+      RECENT ACTIVITY
+  ====================================================== */}
+  <section
+    className="
+      xl:col-span-3
+      bg-white
+      rounded-2xl
+      border border-[#E4DDD0]
+      p-5
+      shadow-[0_2px_12px_rgba(60,50,30,0.03)]
+    "
+  >
+
+    <div className="flex items-start justify-between">
+
+      <div>
+
+        <p className="text-[9px] uppercase tracking-[0.15em] text-[#969080] font-bold">
+          Timeline
+        </p>
+
+        <h3 className="mt-1 text-[17px] font-black tracking-tight">
+          Recent Activity
+        </h3>
+
+      </div>
+
+      <Activity
+        className="w-[16px] h-[16px] text-[#565F28]"
+        strokeWidth={1.7}
+      />
+
+    </div>
+
+
+    {todayOrders.length === 0 ? (
+
+      <div className="min-h-[150px] flex flex-col items-center justify-center text-center">
+
+        <div
+          className="
+            w-11
+            h-11
+            rounded-xl
+            bg-[#F5F1E8]
+            flex
+            items-center
+            justify-center
+          "
+        >
+          <Activity
+            className="w-[18px] h-[18px] text-[#C7BFAF]"
+            strokeWidth={1.6}
+          />
+        </div>
+
+        <p className="mt-3 text-[11px] font-bold text-[#68655D]">
+          No activity
+        </p>
+
+        <p className="mt-1 max-w-[170px] text-[9px] leading-relaxed text-[#A29C92]">
+          Recent order events will appear here.
+        </p>
+
+      </div>
+
+    ) : (
+
+      <div className="mt-4 space-y-4">
+
+        {todayOrders
+          .slice(0, 5)
+          .map((order) => (
+
+            <div
+              key={order.id}
+              className="flex gap-3"
+            >
+
+              <div
+                className="
+                  w-7
+                  h-7
+                  rounded-full
+                  bg-[#E7EBCF]
+                  flex
+                  items-center
+                  justify-center
+                  shrink-0
+                "
+              >
+                <Box
+                  className="w-[13px] h-[13px] text-[#565F28]"
+                  strokeWidth={1.7}
+                />
+              </div>
+
+              <div className="min-w-0">
+
+                <p className="text-[10px] font-bold">
+                  Order received
+                </p>
+
+                <p className="mt-1 text-[9px] text-[#A09A90] truncate">
+                  #{order.id}
+                </p>
+
+              </div>
+
+            </div>
+
+          ))}
+
+      </div>
+
+    )}
+
+  </section>
+
+</div>
+
+     {/* =====================================================
+    PAYMENT SUMMARY
+====================================================== */}
+<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+  <Payment
+    icon={WalletCards}
+    label="UPI Payments"
+    value={0}
+  />
+
+  <Payment
+    icon={Banknote}
+    label="Cash Payments"
+    value={0}
+  />
+
+  <Payment
+    icon={CreditCard}
+    label="Online Payments"
+    value={0}
+  />
+
+</div>
+
+const Payment: React.FC<{
   icon: React.ElementType;
   label: string;
-  value: string;
-  helper: string;
+  value: number;
 }> = ({
   icon: Icon,
   label,
   value,
-  helper,
 }) => (
   <div
     className="
       bg-white
       rounded-2xl
       border border-[#E4DDD0]
-      px-4
+      px-5
       py-4
-      min-h-[108px]
-      transition-all
-      duration-150
-      hover:border-[#D6CEBE]
-      hover:shadow-[0_4px_18px_rgba(70,60,40,0.05)]
+      flex
+      items-center
+      gap-3
+      shadow-[0_2px_12px_rgba(60,50,30,0.03)]
     "
   >
-    <div className="flex items-center gap-3">
 
-      {/* ICON */}
-      <div
+    <div
+      className="
+        w-10
+        h-10
+        rounded-xl
+        bg-[#F1EBD9]
+        flex
+        items-center
+        justify-center
+        shrink-0
+      "
+    >
+      <Icon
+        className="w-[16px] h-[16px] text-[#565F28]"
+        strokeWidth={1.7}
+      />
+    </div>
+
+    <div>
+
+      <p
         className="
-          w-11
-          h-11
-          rounded-full
-          bg-[#F0EBD9]
-          flex
-          items-center
-          justify-center
-          shrink-0
+          text-[8px]
+          font-bold
+          uppercase
+          tracking-[0.12em]
+          text-[#9A958B]
         "
       >
-        <Icon
-          className="w-[19px] h-[19px] text-[#565F28]"
-          strokeWidth={1.8}
-        />
-      </div>
+        {label}
+      </p>
 
-      {/* CONTENT */}
-      <div className="min-w-0 flex-1">
-
-        <p className="text-[10px] font-semibold text-[#858177] leading-none">
-          {label}
-        </p>
-
-        <p className="mt-2 text-[22px] leading-none font-black tracking-tight text-[#20221A] truncate">
-          {value}
-        </p>
-
-        <p className="mt-2 text-[9px] font-medium text-[#A09A90]">
-          {helper}
-        </p>
-
-      </div>
+      <p className="mt-1 text-[19px] font-black">
+        {money(value)}
+      </p>
 
     </div>
+
   </div>
 );
 

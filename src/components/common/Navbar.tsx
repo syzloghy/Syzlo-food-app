@@ -18,6 +18,7 @@ import {
   CreditCard,
   Phone,
   Info,
+  Search,
   ShoppingBag,
 } from 'lucide-react';
 import { OpenStreetMap } from './OpenStreetMap';
@@ -165,7 +166,7 @@ export const Navbar: React.FC = () => {
             <X className="w-5 h-5" strokeWidth={1.8} />
           </button>
         </div>
-      </div></div>
+      </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-4 py-5">

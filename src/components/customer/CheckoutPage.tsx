@@ -52,6 +52,8 @@ export const CheckoutPage: React.FC = () => {
 
   // Dine-in fields
   const [dineInTable, setDineInTable] = useState('Table 02');
+  // Takeaway / Dine-in selection
+const [pickupMode, setPickupMode] = useState<'TAKEAWAY' | 'DINE-IN' | ''>('');
 
   // Payment Selection: defaults to first enabled gateway or RAZORPAY
   const [selectedGatewayId, setSelectedGatewayId] = useState<SupportedPaymentGateway>('RAZORPAY');
@@ -87,7 +89,12 @@ export const CheckoutPage: React.FC = () => {
   };
 
   const handlePlaceOrder = () => {
-    setIsProcessing(true);
+  if (orderType !== 'DELIVERY' && !pickupMode) {
+    alert('Please select Takeaway or Dine-in before placing your order.');
+    return;
+  }
+
+  setIsProcessing(true);
 
     const activeGateway = paymentGateways.find((g) => g.id === selectedGatewayId);
 
@@ -197,34 +204,99 @@ export const CheckoutPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Step 2: Fulfillment Mode */}
-            <div className="bg-white p-5 rounded-2xl border border-cream-200 shadow-xs space-y-3">
-              <span className="text-xs font-extrabold text-olive-700 uppercase tracking-wider block">
-                2. Order Fulfillment Mode
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'DELIVERY', label: 'Delivery', icon: <Bike className="w-4 h-4" /> },
-                  { id: 'PICKUP', label: 'Pickup', icon: <ShoppingBag className="w-4 h-4" /> },
-                  { id: 'DINE-IN', label: 'Dine-In', icon: <Utensils className="w-4 h-4" /> },
-                ].map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setOrderType(m.id as OrderType)}
-                    className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 text-xs font-bold transition-all ${
-                      orderType === m.id
-                        ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
-                        : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
-                    }`}
-                  >
-                    {m.icon}
-                    <span>{m.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+           {/* Step 2: Fulfillment Mode */}
+<div className="bg-white p-5 rounded-2xl border border-cream-200 shadow-xs space-y-4">
+  <span className="text-xs font-extrabold text-olive-700 uppercase tracking-wider block">
+    2. Order Fulfillment Mode
+  </span>
 
+  <div className="grid grid-cols-2 gap-2">
+    {/* Delivery */}
+    <button
+      type="button"
+      onClick={() => {
+        setOrderType('DELIVERY');
+        setPickupMode('');
+      }}
+      className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 text-xs font-bold transition-all ${
+        orderType === 'DELIVERY'
+          ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
+          : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
+      }`}
+    >
+      <Bike className="w-4 h-4" />
+      <span>Delivery</span>
+    </button>
+
+    {/* Takeaway / Dine-in */}
+    <button
+      type="button"
+      onClick={() => {
+        setOrderType('PICKUP');
+        setPickupMode('');
+      }}
+      className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 text-xs font-bold transition-all ${
+        orderType === 'PICKUP' || orderType === 'DINE-IN'
+          ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
+          : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
+      }`}
+    >
+      <ShoppingBag className="w-4 h-4" />
+      <span>Takeaway / Dine-in</span>
+    </button>
+  </div>
+
+  {/* Compulsory Takeaway / Dine-in Selection */}
+  {(orderType === 'PICKUP' || orderType === 'DINE-IN') && (
+    <div className="pt-2 border-t border-cream-200 space-y-2">
+      <span className="text-[11px] font-extrabold text-stone-600 uppercase tracking-wider block">
+        Choose Order Type *
+      </span>
+
+      <div className="grid grid-cols-2 gap-2">
+        {/* Takeaway */}
+        <button
+          type="button"
+          onClick={() => {
+            setPickupMode('TAKEAWAY');
+            setOrderType('PICKUP');
+          }}
+          className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all ${
+            pickupMode === 'TAKEAWAY'
+              ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
+              : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
+          }`}
+        >
+          <ShoppingBag className="w-4 h-4" />
+          <span>Takeaway</span>
+        </button>
+
+        {/* Dine-in */}
+        <button
+          type="button"
+          onClick={() => {
+            setPickupMode('DINE-IN');
+            setOrderType('DINE-IN');
+          }}
+          className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all ${
+            pickupMode === 'DINE-IN'
+              ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
+              : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
+          }`}
+        >
+          <Utensils className="w-4 h-4" />
+          <span>Dine-in</span>
+        </button>
+      </div>
+
+      {!pickupMode && (
+        <p className="text-[11px] font-semibold text-red-600">
+          Please select Takeaway or Dine-in to continue.
+        </p>
+      )}
+    </div>
+  )}
+</div>
             {/* Step 3: Address / Table according to mode */}
             {orderType === 'DELIVERY' && (
               <div className="bg-white p-5 rounded-2xl border border-cream-200 shadow-xs space-y-4">

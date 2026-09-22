@@ -1131,6 +1131,159 @@ const toggleHeroBannerStatus = async (
 
     soundService.playChime('alert');
   };
+  const assignRiderToOrder = async (
+  orderId: string,
+  riderId: string
+): Promise<string | null> => {
+  try {
+    const targetRider = riders.find((r) => r.id === riderId);
+
+    if (!targetRider) {
+      console.error('Rider not found:', riderId);
+      return null;
+    }
+
+    if (targetRider.isAvailable === false) {
+      console.error('Rider is not available');
+      return null;
+    }
+
+    const order = orders.find((o) => o.id === orderId);
+
+    if (!order) {
+      console.error('Order not found:', orderId);
+      return null;
+    }
+
+    /*
+     * IMPORTANT:
+     * Supabase orders use UUID.
+     * CustomerOrder.id is the display order number.
+     */
+    const supabaseOrderId = order.supabaseOrderId;
+
+    if (!supabaseOrderId) {
+      console.error(
+        'This order does not have a Supabase order UUID:',
+        orderId
+      );
+
+      alert(
+        'This order is not connected to Supabase yet. ' +
+        'Please place a new order before assigning a rider.'
+      );
+
+      return null;
+    }
+
+    /*
+     * Ask the secure Supabase Edge Function to create
+     * the one-time rider delivery link.
+     */
+    const { data, error } = await supabase.functions.invoke(
+      'rider-delivery',
+      {
+        body: {
+          action: 'create',
+          orderId: supabaseOrderId,
+          riderId: riderId,
+        },
+      }
+    );
+
+    if (error) {
+      console.error(
+        'Failed to create rider delivery link:',
+        error
+      );
+
+      alert(
+        error.message ||
+          'Could not create the rider delivery link.'
+      );
+
+      return null;
+    }
+
+    if (!data?.success || !data?.deliveryUrl) {
+      console.error(
+        'Invalid rider delivery response:',
+        data
+      );
+
+      alert('Could not create the rider delivery link.');
+
+      return null;
+    }
+
+    /*
+     * Update the local application state.
+     */
+    const now = new Date();
+    const timeFormatted = now.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    setOrders((prev) =>
+      prev.map((ord) => {
+        if (ord.id !== orderId) {
+          return ord;
+        }
+
+        return {
+          ...ord,
+          status: 'RIDER_ASSIGNED',
+          riderId: targetRider.id,
+          riderName: targetRider.name,
+          riderPhone: targetRider.phone,
+          riderLocation: undefined,
+          logs: [
+            ...ord.logs,
+            {
+              status: 'RIDER_ASSIGNED',
+              timestamp: timeFormatted,
+              note: `Assigned to rider ${targetRider.name}`,
+            },
+          ],
+        };
+      })
+    );
+
+    setRiders((prev) =>
+      prev.map((rider) =>
+        rider.id === riderId
+          ? {
+              ...rider,
+              status: 'BUSY',
+              isAvailable: false,
+              currentOrderId: orderId,
+            }
+          : rider
+      )
+    );
+
+    soundService.playChime('alert');
+
+    console.log(
+      'Rider delivery link created:',
+      data.deliveryUrl
+    );
+
+    return data.deliveryUrl;
+  } catch (error) {
+    console.error(
+      'assignRiderToOrder failed:',
+      error
+    );
+
+    alert(
+      'Something went wrong while assigning the rider.'
+    );
+
+    return null;
+  }
+};
 
   const cancelOrder = (orderId: string, reason?: string) => {
     const now = new Date();
@@ -1620,9 +1773,9 @@ const deleteMenuItem = async (id: string) => {
         updateOsmConfig,
         placeCustomerOrder,
         updateOrderStatus,
-        assignRider,
-        assignRiderToOrder: assignRider,
-        cancelOrder,
+      assignRider,
+assignRiderToOrder,
+cancelOrder,
        activeRiderId,
 setActiveRiderId,
 addRider,

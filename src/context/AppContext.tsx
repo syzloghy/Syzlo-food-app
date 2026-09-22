@@ -137,7 +137,9 @@ toggleHeroBannerStatus: (id: string) => Promise<void>;
   updateOsmConfig: (updates: Partial<OsmMapConfig>) => void;
 
   // Order Operations
-  placeCustomerOrder: (orderPayload: Partial<CustomerOrder>) => CustomerOrder;
+  placeCustomerOrder: (
+  orderPayload: Partial<CustomerOrder>
+) => Promise<CustomerOrder>;
   updateOrderStatus: (orderId: string, status: OrderStatus, note?: string) => void;
   assignRider: (orderId: string, riderId: string) => void;
  assignRiderToOrder: (
@@ -1012,13 +1014,20 @@ const toggleHeroBannerStatus = async (
     setOsmConfig((prev) => ({ ...prev, ...updates }));
   };
 
-  // Order Placement
- const placeCustomerOrder = async (
+// Order Placement
+const placeCustomerOrder = async (
   orderPayload: Partial<CustomerOrder>
 ): Promise<CustomerOrder> => {
+  try {
     const isPOS = orderPayload.source === 'POS';
-    const orderId = orderPayload.id || orderService.generateOrderId(isPOS);
-    const orderItems = orderPayload.items && orderPayload.items.length > 0 ? orderPayload.items : cart;
+
+    const orderId =
+      orderPayload.id || orderService.generateOrderId(isPOS);
+
+    const orderItems =
+      orderPayload.items && orderPayload.items.length > 0
+        ? orderPayload.items
+        : cart;
 
     const breakdown = orderService.calculateOrderBreakdown(
       orderItems,
@@ -1029,50 +1038,308 @@ const toggleHeroBannerStatus = async (
     );
 
     const now = new Date();
-    const timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const timeFormatted = now.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    // Get logged-in customer
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error(
+        'Failed to get authenticated user:',
+        userError
+      );
+    }
+
+    if (!user) {
+      throw new Error(
+        'Please log in before placing an order.'
+      );
+    }
 
     const newOrder: CustomerOrder = {
       id: orderId,
       source: orderPayload.source || 'ONLINE',
-      orderType: orderPayload.orderType || orderType,
+      orderType:
+        orderPayload.orderType || orderType,
+
       items: orderItems,
+
       itemTotal: breakdown.itemTotal,
       discount: breakdown.discount,
       deliveryFee: breakdown.deliveryFee,
       packagingFee: breakdown.packagingFee,
       tax: breakdown.tax,
       grandTotal: breakdown.grandTotal,
-      couponCode: appliedCoupon?.code,
-      paymentMethod: orderPayload.paymentMethod || 'UPI',
-      paymentStatus: 'PAID',
+
+      couponCode:
+        appliedCoupon?.code,
+
+      paymentMethod:
+        orderPayload.paymentMethod || 'UPI',
+
+      paymentStatus:
+        orderPayload.paymentStatus || 'PAID',
+
       status: 'ORDER_PLACED',
+
       createdAt: now.toISOString(),
-      customerName: orderPayload.customerName || customerProfile.name,
-      customerPhone: orderPayload.customerPhone || customerProfile.phone,
-      deliveryAddress: orderPayload.deliveryAddress,
-      dineInTable: orderPayload.dineInTable,
-      specialInstructions: orderPayload.specialInstructions,
-      estimatedMinutes: orderPayload.orderType === 'DELIVERY' ? 30 : 15,
+
+      customerName:
+        orderPayload.customerName ||
+        customerProfile.name,
+
+      customerPhone:
+        orderPayload.customerPhone ||
+        customerProfile.phone,
+
+      deliveryAddress:
+        orderPayload.deliveryAddress,
+
+      dineInTable:
+        orderPayload.dineInTable,
+
+      specialInstructions:
+        orderPayload.specialInstructions,
+
+      estimatedMinutes:
+        orderPayload.orderType === 'DELIVERY'
+          ? 30
+          : 15,
+
       logs: [
         {
           status: 'ORDER_PLACED',
           timestamp: timeFormatted,
-          note: `Order placed via ${orderPayload.source || 'ONLINE'} (${orderPayload.paymentMethod || 'UPI'})`,
+          note:
+            `Order placed via ${
+              orderPayload.source || 'ONLINE'
+            } (${
+              orderPayload.paymentMethod || 'UPI'
+            })`,
         },
       ],
     };
 
-    setOrders((prev) => [newOrder, ...prev]);
+    // Create Supabase order
+    const deliveryAddress =
+      orderPayload.deliveryAddress;
+
+    const {
+      data: dbOrder,
+      error: orderError,
+    } = await supabase
+      .from('orders')
+      .insert({
+        order_number: orderId,
+        customer_id: user.id,
+        order_type: newOrder.orderType,
+        status: 'ORDER_PLACED',
+        payment_status: newOrder.paymentStatus,
+        payment_method: newOrder.paymentMethod,
+
+        subtotal: breakdown.itemTotal,
+        discount: breakdown.discount,
+        delivery_charge: breakdown.deliveryFee,
+        tax: breakdown.tax,
+        total: breakdown.grandTotal,
+
+        coupon_code:
+          newOrder.couponCode || null,
+
+        customer_name:
+          newOrder.customerName,
+
+        customer_phone:
+          newOrder.customerPhone,
+
+        delivery_house_flat:
+          deliveryAddress?.houseNo || null,
+
+        delivery_building_street:
+          deliveryAddress?.street || null,
+
+        delivery_area_landmark:
+          deliveryAddress?.areaLandmark || null,
+
+        delivery_pin_code:
+          deliveryAddress?.pinCode || null,
+
+        delivery_latitude:
+          deliveryAddress?.latitude ?? null,
+
+        delivery_longitude:
+          deliveryAddress?.longitude ?? null,
+
+        special_instructions:
+          newOrder.specialInstructions || null,
+
+        table_number:
+          newOrder.dineInTable || null,
+
+        placed_at:
+          now.toISOString(),
+      })
+      .select('id')
+      .single();
+
+    if (orderError || !dbOrder) {
+      console.error(
+        'Failed to create Supabase order:',
+        orderError
+      );
+
+      throw new Error(
+        orderError?.message ||
+          'Failed to create order.'
+      );
+    }
+
+    // Create order items
+    const orderItemRows = orderItems.map((item) => ({
+      order_id: dbOrder.id,
+      menu_item_id: item.menuItem.id,
+      item_name: item.menuItem.name,
+      unit_price: item.unitPrice,
+      quantity: item.quantity,
+      item_total: item.totalPrice,
+    }));
+
+    const {
+      data: dbOrderItems,
+      error: orderItemsError,
+    } = await supabase
+      .from('order_items')
+      .insert(orderItemRows)
+      .select('id');
+
+    if (
+      orderItemsError ||
+      !dbOrderItems
+    ) {
+      console.error(
+        'Failed to create order items:',
+        orderItemsError
+      );
+
+      throw new Error(
+        orderItemsError?.message ||
+          'Failed to create order items.'
+      );
+    }
+
+    // Create order item add-ons
+    const addonRows: Array<{
+      order_item_id: string;
+      addon_name: string;
+      addon_price: number;
+      quantity: number;
+    }> = [];
+
+    orderItems.forEach(
+      (item, itemIndex) => {
+        const dbOrderItem =
+          dbOrderItems[itemIndex];
+
+        if (!dbOrderItem) {
+          return;
+        }
+
+        item.selectedAddOns.forEach(
+          (addon) => {
+            addonRows.push({
+              order_item_id:
+                dbOrderItem.id,
+
+              addon_name:
+                addon.name,
+
+              addon_price:
+                addon.price,
+
+              quantity: 1,
+            });
+          }
+        );
+      }
+    );
+
+    if (addonRows.length > 0) {
+      const {
+        error: addonError,
+      } = await supabase
+        .from('order_item_addons')
+        .insert(addonRows);
+
+      if (addonError) {
+        console.error(
+          'Failed to create order add-ons:',
+          addonError
+        );
+
+        throw new Error(
+          addonError.message ||
+            'Failed to create order add-ons.'
+        );
+      }
+    }
+
+    // Connect local order to Supabase UUID
+    const finalOrder: CustomerOrder = {
+      ...newOrder,
+      supabaseOrderId: dbOrder.id,
+    };
+
+    // Update local state
+    setOrders((prev) => [
+      finalOrder,
+      ...prev,
+    ]);
+
     soundService.playChime('success');
 
     if (!isPOS) {
       clearCart();
-      setActiveTrackingOrderId(orderId);
-      setCustomerScreen('tracking');
+
+      setActiveTrackingOrderId(
+        orderId
+      );
+
+      setCustomerScreen(
+        'tracking'
+      );
     }
 
-    return newOrder;
-  };
+    console.log(
+      'Order successfully created:',
+      {
+        visibleOrderId: orderId,
+        supabaseOrderId: dbOrder.id,
+      }
+    );
+
+    return finalOrder;
+  } catch (error) {
+    console.error(
+      'placeCustomerOrder failed:',
+      error
+    );
+
+    alert(
+      error instanceof Error
+        ? error.message
+        : 'Failed to place order.'
+    );
+
+    throw error;
+  }
+};
 
   const updateOrderStatus = (orderId: string, status: OrderStatus, note?: string) => {
     const now = new Date();

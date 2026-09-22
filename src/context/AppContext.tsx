@@ -51,6 +51,7 @@ export type AdminScreen =
   | 'gateways'
   | 'map-osm'
   | 'brand'
+  | 'business'
   | 'customers'
   | 'riders'
   | 'staff'

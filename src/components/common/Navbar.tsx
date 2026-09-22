@@ -176,27 +176,27 @@ export const Navbar: React.FC = () => {
           onClick={() => setIsSidebarOpen(false)}
         >
           <div
-            className="w-[84%] max-w-sm bg-[#FAF7F2] h-full shadow-2xl flex flex-col border-r border-[#E8DED0]"
+            className="w-[84%] max-w-sm bg-[#7A7B26] h-full shadow-2xl flex flex-col border-r border-[#6B6C20]"
             onClick={(e) => e.stopPropagation()}
           >
 
             {/* Drawer Header */}
-            <div className="px-5 py-5 bg-white border-b border-[#E8DED0]">
+            className="px-5 py-5 bg-[#7A7B26] border-b border-[#8D8E3D]"
               <div className="flex items-center justify-between">
 
                 <div>
-                  <h2 className="text-xl font-black tracking-tight text-[#48521E]">
+                  <h2 className="text-xl font-black tracking-tight text-[#EED7B5]">
                     {brandConfig.brandName || 'SYZLO'}
                   </h2>
 
-                  <p className="mt-1 text-[10px] font-semibold tracking-[0.18em] uppercase text-stone-500">
+                  <p className="mt-1 text-[10px] font-semibold tracking-[0.18em] uppercase text-[#EED7B5]/70">
                     The Bao Makers
                   </p>
                 </div>
 
                 <button
                   onClick={() => setIsSidebarOpen(false)}
-                  className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-colors"
+                 className="p-2 rounded-lg text-[#EED7B5]/80 hover:bg-[#6B6C20] hover:text-[#EED7B5] transition-colors"
                   aria-label="Close menu"
                 >
                   <X

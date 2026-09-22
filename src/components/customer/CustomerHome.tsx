@@ -120,7 +120,7 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
           </div>
         </button>
 
-       {/* Right: Mode Toggle */}
+{/* Right: Mode Toggle */}
 <div className="flex items-center p-1 bg-[#EDE6D6] rounded-full border border-cream-300/60">
   {/* Delivery */}
   <button

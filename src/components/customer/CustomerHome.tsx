@@ -85,6 +85,20 @@ export const CustomerHome: React.FC = () => {
 
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 const getCategoryImage = (categoryId: string, fallback: string) =>
+  const handleCategoryClick = (category: FoodCategory) => {
+  setSelectedCategory(category);
+
+  setTimeout(() => {
+    const target =
+      document.getElementById('category-products-section') ||
+      document.getElementById('popular-items-section');
+
+    target?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, 50);
+};
   categoriesConfig.find((category) => category.id === categoryId)?.image || fallback;
   
   // Breakdown with packaging charge
@@ -271,7 +285,7 @@ src={getCategoryImage(
 
     {/* 2. Bao Category */}
     <button
-      onClick={() => setSelectedCategory('BAO')}
+      onClick={() => handleCategoryClick('BAO')}
       className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
     >
       <div
@@ -304,7 +318,7 @@ src={getCategoryImage(
 
     {/* 3. Chinese Category */}
     <button
-      onClick={() => setSelectedCategory('CHINESE')}
+      onClick={() =>handleCategoryClick('CHINESE')}
       className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
     >
       <div
@@ -337,7 +351,7 @@ src={getCategoryImage(
 
     {/* 4. Combos Category */}
     <button
-      onClick={() => setSelectedCategory('COMBOS')}
+      onClick={() => handleCategoryClick('COMBOS')}
       className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
     >
       <div
@@ -370,7 +384,7 @@ src={getCategoryImage(
 
     {/* 5. Drinks Category */}
     <button
-      onClick={() => setSelectedCategory('DRINKS')}
+      onClick={() => handleCategoryClick('DRINKS')}
       className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
     >
       <div
@@ -403,7 +417,7 @@ src={getCategoryImage(
 
     {/* 6. Starters Category */}
     <button
-      onClick={() => setSelectedCategory('STARTERS')}
+      onClick={() => handleCategoryClick('STARTERS')}
       className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-hidden"
     >
       <div
@@ -460,7 +474,7 @@ src={getCategoryImage(
 
         {/* Remaining / Filtered Items if searching or selected specific category */}
         {(selectedCategory !== 'ALL' || searchQuery || popularItems.length === 0) && (
-          <div className="mt-8">
+          <div id="category-products-section" className="mt-8 scroll-mt-20">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-black text-stone-900">
                 {selectedCategory === 'ALL' ? 'All Offerings' : `${selectedCategory} Specials`}

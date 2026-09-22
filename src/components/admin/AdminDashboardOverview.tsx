@@ -1,17 +1,26 @@
 import React, { useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
+  Activity,
+  ArrowRight,
   Banknote,
   Bike,
+  ChevronRight,
+  CircleCheck,
   Clock3,
   CreditCard,
   IndianRupee,
+  LayoutDashboard,
   Package,
+  Plus,
+  Printer,
   ReceiptText,
+  Search,
   ShoppingBag,
   Tag,
-  TrendingUp,
+  Truck,
   Utensils,
+  Users,
   WalletCards,
 } from 'lucide-react';
 
@@ -37,24 +46,88 @@ const isToday = (dateString?: string) => {
   );
 };
 
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'placed':
+    case 'ORDER_PLACED':
+      return 'New';
+
+    case 'accepted':
+    case 'RESTAURANT_ACCEPTED':
+    case 'preparing':
+    case 'PREPARING':
+      return 'Preparing';
+
+    case 'ready':
+    case 'READY':
+      return 'Ready';
+
+    case 'rider_assigned':
+    case 'RIDER_ASSIGNED':
+    case 'picked_up':
+    case 'PICKED_UP':
+    case 'out_for_delivery':
+    case 'OUT_FOR_DELIVERY':
+      return 'Out for Delivery';
+
+    case 'delivered':
+    case 'DELIVERED':
+    case 'completed':
+    case 'COMPLETED':
+      return 'Delivered';
+
+    case 'cancelled':
+    case 'CANCELLED':
+      return 'Cancelled';
+
+    default:
+      return status;
+  }
+};
+
+const getOrderTypeLabel = (orderType: string) => {
+  switch (orderType) {
+    case 'DELIVERY':
+    case 'delivery':
+      return 'Delivery';
+
+    case 'PICKUP':
+    case 'pickup':
+      return 'Pickup';
+
+    case 'DINE-IN':
+    case 'dine_in':
+      return 'Dine-in';
+
+    default:
+      return orderType;
+  }
+};
+
 export const AdminDashboardOverview: React.FC<
   AdminDashboardOverviewProps
 > = ({ onNavigateTab }) => {
-  const { orders, riders } = useApp();
+  const {
+    orders,
+    riders,
+    staff,
+    setAdminScreen,
+  } = useApp();
 
   /*
-   * Only orders successfully connected to Supabase
-   * are treated as real business orders.
-   *
-   * This prevents INITIAL_ORDERS/demo data from appearing
-   * as real SYZLO sales before the outlet launches.
+   * Only orders connected to Supabase are treated as real orders.
+   * This prevents INITIAL_ORDERS/demo data from appearing as
+   * real business activity before SYZLO launches.
    */
   const realOrders = useMemo(
-    () => orders.filter((order) => Boolean(order.supabaseOrderId)),
+    () =>
+      orders.filter(
+        (order) => Boolean(order.supabaseOrderId)
+      ),
     [orders]
   );
 
-  const todaysOrders = useMemo(
+  const todayOrders = useMemo(
     () =>
       realOrders.filter((order) =>
         isToday(order.createdAt)
@@ -62,37 +135,39 @@ export const AdminDashboardOverview: React.FC<
     [realOrders]
   );
 
-  const validSalesOrders = useMemo(
+  const activeSalesOrders = useMemo(
     () =>
-      todaysOrders.filter(
+      todayOrders.filter(
         (order) =>
           order.status !== 'CANCELLED' &&
           order.status !== 'cancelled'
       ),
-    [todaysOrders]
+    [todayOrders]
   );
 
   const todaySales = useMemo(
     () =>
-      validSalesOrders.reduce(
-        (sum, order) => sum + Number(order.grandTotal || 0),
+      activeSalesOrders.reduce(
+        (sum, order) =>
+          sum + Number(order.grandTotal || 0),
         0
       ),
-    [validSalesOrders]
+    [activeSalesOrders]
   );
 
   const todayDiscounts = useMemo(
     () =>
-      todaysOrders.reduce(
-        (sum, order) => sum + Number(order.discount || 0),
+      todayOrders.reduce(
+        (sum, order) =>
+          sum + Number(order.discount || 0),
         0
       ),
-    [todaysOrders]
+    [todayOrders]
   );
 
-  const todayItemsSold = useMemo(
+  const itemsSold = useMemo(
     () =>
-      validSalesOrders.reduce(
+      activeSalesOrders.reduce(
         (sum, order) =>
           sum +
           order.items.reduce(
@@ -102,94 +177,91 @@ export const AdminDashboardOverview: React.FC<
           ),
         0
       ),
-    [validSalesOrders]
+    [activeSalesOrders]
   );
 
   const averageOrderValue =
-    validSalesOrders.length > 0
-      ? todaySales / validSalesOrders.length
+    activeSalesOrders.length > 0
+      ? todaySales / activeSalesOrders.length
       : 0;
 
-  /*
-   * Live order pipeline
-   */
-  const newOrders = todaysOrders.filter(
+  const activeRiders = riders.filter(
+    (rider) =>
+      rider.status === 'ONLINE' ||
+      rider.status === 'BUSY' ||
+      rider.isAvailable
+  );
+
+  const newOrders = todayOrders.filter(
     (order) =>
       order.status === 'placed' ||
       order.status === 'ORDER_PLACED'
-  ).length;
+  );
 
-  const preparingOrders = todaysOrders.filter(
+  const preparingOrders = todayOrders.filter(
     (order) =>
-      order.status === 'preparing' ||
-      order.status === 'PREPARING' ||
       order.status === 'accepted' ||
-      order.status === 'RESTAURANT_ACCEPTED'
-  ).length;
+      order.status === 'RESTAURANT_ACCEPTED' ||
+      order.status === 'preparing' ||
+      order.status === 'PREPARING'
+  );
 
-  const readyOrders = todaysOrders.filter(
+  const readyOrders = todayOrders.filter(
     (order) =>
       order.status === 'ready' ||
       order.status === 'READY'
-  ).length;
+  );
 
-  const deliveryOrders = todaysOrders.filter(
+  const deliveryOrders = todayOrders.filter(
     (order) =>
-      order.status === 'out_for_delivery' ||
-      order.status === 'OUT_FOR_DELIVERY' ||
+      order.status === 'rider_assigned' ||
+      order.status === 'RIDER_ASSIGNED' ||
       order.status === 'picked_up' ||
       order.status === 'PICKED_UP' ||
-      order.status === 'rider_assigned' ||
-      order.status === 'RIDER_ASSIGNED'
-  ).length;
+      order.status === 'out_for_delivery' ||
+      order.status === 'OUT_FOR_DELIVERY'
+  );
 
-  /*
-   * Order type
-   */
-  const deliveryCount = todaysOrders.filter(
+  const deliveryCount = todayOrders.filter(
     (order) =>
       order.orderType === 'DELIVERY' ||
       order.orderType === 'delivery'
   ).length;
 
-  const pickupCount = todaysOrders.filter(
+  const pickupCount = todayOrders.filter(
     (order) =>
       order.orderType === 'PICKUP' ||
       order.orderType === 'pickup'
   ).length;
 
-  const dineInCount = todaysOrders.filter(
+  const dineInCount = todayOrders.filter(
     (order) =>
       order.orderType === 'DINE-IN' ||
       order.orderType === 'dine_in'
   ).length;
 
-  /*
-   * Payment methods
-   */
-  const upiCount = todaysOrders.filter(
-    (order) =>
-      order.paymentMethod === 'UPI' ||
-      order.paymentMethod === 'upi'
-  ).length;
+  const paymentCounts = {
+    UPI: todayOrders.filter(
+      (order) =>
+        order.paymentMethod === 'UPI' ||
+        order.paymentMethod === 'upi'
+    ).length,
 
-  const cashCount = todaysOrders.filter(
-    (order) =>
-      order.paymentMethod === 'CASH' ||
-      order.paymentMethod === 'cash'
-  ).length;
+    Cash: todayOrders.filter(
+      (order) =>
+        order.paymentMethod === 'CASH' ||
+        order.paymentMethod === 'cash'
+    ).length,
 
-  const onlineCount = todaysOrders.filter(
-    (order) =>
-      order.paymentMethod === 'ONLINE' ||
-      order.paymentMethod === 'online'
-  ).length;
+    Online: todayOrders.filter(
+      (order) =>
+        order.paymentMethod === 'ONLINE' ||
+        order.paymentMethod === 'online'
+    ).length,
+  };
 
-  /*
-   * Top selling items
-   */
   const topSellingItems = useMemo(() => {
-    const itemMap = new Map<
+    const map = new Map<
       string,
       {
         name: string;
@@ -198,587 +270,1049 @@ export const AdminDashboardOverview: React.FC<
       }
     >();
 
-    validSalesOrders.forEach((order) => {
+    activeSalesOrders.forEach((order) => {
       order.items.forEach((item) => {
-        const id = item.menuItem?.id || item.menuItem?.name;
+        const id =
+          item.menuItem?.id ||
+          item.menuItem?.name;
 
         if (!id) return;
 
-        const existing = itemMap.get(id);
+        const existing = map.get(id);
 
         if (existing) {
-          existing.quantity += Number(item.quantity || 0);
-          existing.sales += Number(item.totalPrice || 0);
+          existing.quantity += Number(
+            item.quantity || 0
+          );
+
+          existing.sales += Number(
+            item.totalPrice || 0
+          );
         } else {
-          itemMap.set(id, {
-            name: item.menuItem?.name || 'Unknown item',
-            quantity: Number(item.quantity || 0),
-            sales: Number(item.totalPrice || 0),
+          map.set(id, {
+            name:
+              item.menuItem?.name ||
+              'Unknown item',
+            quantity: Number(
+              item.quantity || 0
+            ),
+            sales: Number(
+              item.totalPrice || 0
+            ),
           });
         }
       });
     });
 
-    return Array.from(itemMap.values())
-      .sort((a, b) => b.quantity - a.quantity)
+    return Array.from(map.values())
+      .sort(
+        (a, b) =>
+          b.quantity - a.quantity
+      )
       .slice(0, 5);
-  }, [validSalesOrders]);
+  }, [activeSalesOrders]);
 
-  const activeRiders = riders.filter(
-    (rider) =>
-      rider.status === 'ONLINE' ||
-      rider.status === 'BUSY' ||
-      rider.isAvailable
-  ).length;
+  const recentOrders = [...todayOrders]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime()
+    )
+    .slice(0, 5);
 
-  const hasTodayData = todaysOrders.length > 0;
+  const goToOrders = () =>
+    onNavigateTab('orders');
+
+  const goToKDS = () =>
+    setAdminScreen('kitchen');
+
+  const goToPOS = () =>
+    setAdminScreen('pos');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
 
-      {/* PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+      {/* =========================================================
+          TOP HEADER
+      ========================================================== */}
+      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-olive-700">
-            SYZLO ADMIN
-          </p>
+          <div className="flex items-center gap-2">
+            <LayoutDashboard className="w-4 h-4 text-[#7A7B26]" />
 
-          <h1 className="mt-1 text-2xl sm:text-3xl font-black text-syzlo-charcoal">
+            <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#7A7B26]">
+              SYZLO ADMIN
+            </span>
+          </div>
+
+          <h1 className="mt-1 text-2xl sm:text-3xl font-black text-[#20221A]">
             Dashboard
           </h1>
 
           <p className="mt-1 text-sm text-stone-500">
-            Today's business overview and live operations.
+            Overview & operations dashboard
           </p>
         </div>
 
-        <div className="text-left sm:text-right">
-          <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
-            Business Status
-          </p>
+        <div className="flex items-center gap-3">
 
-          <div className="mt-1 flex items-center gap-2 sm:justify-end">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-sm font-bold text-syzlo-charcoal">
-              Outlet Ready
+          <div className="hidden md:flex items-center gap-2 h-10 px-4 rounded-xl bg-white border border-[#E8D8BD]">
+            <Search className="w-4 h-4 text-stone-400" />
+
+            <span className="text-xs text-stone-400">
+              Search orders, customers, menu...
             </span>
           </div>
+
+          <div className="h-10 px-4 rounded-xl bg-white border border-[#E8D8BD] flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+
+            <span className="text-xs font-bold text-[#20221A]">
+              Pre-launch
+            </span>
+          </div>
+
         </div>
       </div>
 
-      {/* KEY METRICS */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+      {/* =========================================================
+          KPI CARDS
+      ========================================================== */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
 
-        <MetricCard
-          label="Today's Sales"
+        <KpiCard
+          label="Total Orders"
+          value={todayOrders.length.toString()}
+          icon={ShoppingBag}
+        />
+
+        <KpiCard
+          label="Total Revenue"
           value={formatCurrency(todaySales)}
           icon={IndianRupee}
         />
 
-        <MetricCard
-          label="Orders Today"
-          value={todaysOrders.length.toString()}
-          icon={ShoppingBag}
-        />
-
-        <MetricCard
-          label="Items Sold"
-          value={todayItemsSold.toString()}
-          icon={Package}
-        />
-
-        <MetricCard
-          label="Discounts"
-          value={formatCurrency(todayDiscounts)}
-          icon={Tag}
-        />
-
-        <MetricCard
-          label="Average Order"
+        <KpiCard
+          label="Average Order Value"
           value={formatCurrency(averageOrderValue)}
-          icon={TrendingUp}
+          icon={TrendingIcon}
         />
 
-        <MetricCard
+        <KpiCard
           label="Active Riders"
-          value={`${activeRiders}/${riders.length}`}
+          value={`${activeRiders.length} / ${riders.length}`}
+          subtitle={
+            activeRiders.length > 0
+              ? `${activeRiders.length} currently available`
+              : 'No active riders'
+          }
           icon={Bike}
+        />
+
+        <KpiCard
+          label="Table Occupancy"
+          value="—"
+          subtitle="No table data yet"
+          icon={Users}
         />
 
       </div>
 
-      {/* LIVE OPERATIONS */}
-      <section className="bg-white rounded-3xl border border-cream-200 shadow-xs overflow-hidden">
+      {/* =========================================================
+          HERO + STATUS + QUICK ACTIONS
+      ========================================================== */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
 
-        <div className="p-5 border-b border-cream-100">
-          <div className="flex items-center justify-between gap-3">
+        {/* HERO */}
+        <section className="xl:col-span-7 min-h-[220px] rounded-3xl overflow-hidden relative bg-[#252719] border border-[#D8C7A8]">
+
+          <div className="absolute inset-0 bg-gradient-to-r from-[#20221A] via-[#2B2D20] to-[#5A492F]" />
+
+          <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-20 bg-[radial-gradient(circle_at_center,_#EED7B5,_transparent_65%)]" />
+
+          <div className="relative z-10 p-7 sm:p-9 h-full flex flex-col justify-between">
+
             <div>
-              <h2 className="text-sm font-black uppercase tracking-wider text-syzlo-charcoal">
-                Live Operations
+              <p className="text-[10px] uppercase tracking-[0.25em] text-[#EED7B5] font-bold">
+                THE BAO MAKERS'
+              </p>
+
+              <h2 className="mt-3 max-w-md text-3xl sm:text-4xl font-black text-white leading-tight">
+                Handcrafted
+                <br />
+                Comfort, Always.
               </h2>
 
-              <p className="mt-1 text-xs text-stone-500">
-                Current order pipeline
+              <p className="mt-3 text-sm text-white/75">
+                Fresh buns. Real ingredients. Happier people.
               </p>
             </div>
 
             <button
-              onClick={() => onNavigateTab('orders')}
-              className="text-xs font-bold text-olive-700 hover:text-olive-900"
+              type="button"
+              onClick={goToOrders}
+              className="mt-6 w-fit inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7A7B26] hover:bg-[#696A20] text-white text-xs font-bold transition-colors"
             >
-              View Orders
+              View Today's Orders
+              <ArrowRight className="w-4 h-4" />
             </button>
+
           </div>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x-0 lg:divide-x divide-y lg:divide-y-0 divide-cream-100">
+        {/* OUTLET STATUS */}
+        <section className="xl:col-span-2 bg-white rounded-3xl border border-[#E8D8BD] p-5">
 
-          <PipelineCard
-            label="New"
-            count={newOrders}
-            icon={ReceiptText}
-          />
-
-          <PipelineCard
-            label="Preparing"
-            count={preparingOrders}
-            icon={Utensils}
-          />
-
-          <PipelineCard
-            label="Ready"
-            count={readyOrders}
-            icon={Package}
-          />
-
-          <PipelineCard
-            label="Out for Delivery"
-            count={deliveryOrders}
-            icon={Bike}
-          />
-
-        </div>
-      </section>
-
-      {/* PRE-LAUNCH / EMPTY STATE */}
-      {!hasTodayData && (
-        <section className="bg-white rounded-3xl border border-cream-200 shadow-xs p-6 sm:p-8">
-
-          <div className="max-w-xl mx-auto text-center">
-
-            <div className="mx-auto w-12 h-12 rounded-2xl bg-cream-100 border border-cream-200 flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5 text-olive-700" />
-            </div>
-
-            <h2 className="mt-4 text-lg font-black text-syzlo-charcoal">
-              No orders yet
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-black text-[#20221A]">
+              Outlet Status
             </h2>
 
-            <p className="mt-2 text-sm leading-6 text-stone-500">
-              SYZLO has not recorded any real orders yet.
-              Once your first order is completed, sales,
-              item performance, payment data and other
-              dashboard metrics will appear here automatically.
-            </p>
+            <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-[#F5F0E6] text-[#7A7B26]">
+              PRE-LAUNCH
+            </span>
+          </div>
+
+          <div className="mt-5 space-y-4">
+
+            <StatusLine
+              label="Accepting Orders"
+              value="No"
+            />
+
+            <StatusLine
+              label="Kitchen Online"
+              value="Ready"
+            />
+
+            <StatusLine
+              label="POS Active"
+              value="Ready"
+            />
+
+            <StatusLine
+              label="Online Ordering"
+              value="Ready"
+            />
+
+          </div>
+        </section>
+
+        {/* QUICK ACTIONS */}
+        <section className="xl:col-span-3 bg-white rounded-3xl border border-[#E8D8BD] p-5">
+
+          <h2 className="text-sm font-black text-[#20221A]">
+            Quick Actions
+          </h2>
+
+          <div className="grid grid-cols-2 gap-2.5 mt-4">
+
+            <QuickAction
+              label="New Order"
+              icon={Plus}
+              onClick={goToPOS}
+            />
+
+            <QuickAction
+              label="Kitchen Display"
+              icon={Utensils}
+              onClick={goToKDS}
+            />
+
+            <QuickAction
+              label="View Menu"
+              icon={ShoppingBag}
+              onClick={() => onNavigateTab('menu')}
+            />
+
+            <QuickAction
+              label="Print Last Bill"
+              icon={Printer}
+              onClick={goToPOS}
+            />
+
+          </div>
+        </section>
+
+      </div>
+
+      {/* =========================================================
+          LIVE ORDERS + TODAY GLANCE
+      ========================================================== */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+
+        {/* LIVE ORDERS */}
+        <section className="xl:col-span-8 bg-white rounded-3xl border border-[#E8D8BD] overflow-hidden">
+
+          <div className="p-5 border-b border-[#F0E8DB]">
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+              <div>
+                <h2 className="text-lg font-black text-[#20221A]">
+                  Live Orders
+                  <span className="ml-2 text-[#7A7B26]">
+                    ({todayOrders.length})
+                  </span>
+                </h2>
+
+                <p className="mt-1 text-xs text-stone-500">
+                  Today's active order pipeline
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={goToOrders}
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#7A7B26]"
+              >
+                View all
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+            </div>
+
+            <div className="flex flex-wrap gap-2 mt-4">
+
+              <OrderFilter
+                label="All"
+                count={todayOrders.length}
+                active
+              />
+
+              <OrderFilter
+                label="New"
+                count={newOrders.length}
+              />
+
+              <OrderFilter
+                label="Preparing"
+                count={preparingOrders.length}
+              />
+
+              <OrderFilter
+                label="Ready"
+                count={readyOrders.length}
+              />
+
+              <OrderFilter
+                label="Delivery"
+                count={deliveryOrders.length}
+              />
+
+            </div>
+
+          </div>
+
+          {recentOrders.length === 0 ? (
+            <EmptyOrders />
+          ) : (
+            <div className="divide-y divide-[#F0E8DB]">
+
+              {recentOrders.map((order) => (
+                <LiveOrderRow
+                  key={order.id}
+                  order={order}
+                />
+              ))}
+
+            </div>
+          )}
+
+        </section>
+
+        {/* TODAY AT A GLANCE */}
+        <section className="xl:col-span-4 bg-white rounded-3xl border border-[#E8D8BD] p-5">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+              <h2 className="text-lg font-black text-[#20221A]">
+                Today at a Glance
+              </h2>
+
+              <p className="mt-1 text-xs text-stone-500">
+                Current business activity
+              </p>
+            </div>
+
+            <Activity className="w-5 h-5 text-[#7A7B26]" />
+
+          </div>
+
+          <div className="mt-6">
+
+            <GlanceRow
+              label="Orders"
+              value={todayOrders.length}
+            />
+
+            <GlanceRow
+              label="Revenue"
+              value={formatCurrency(todaySales)}
+            />
+
+            <GlanceRow
+              label="Items Sold"
+              value={itemsSold}
+            />
+
+            <GlanceRow
+              label="Discounts"
+              value={formatCurrency(todayDiscounts)}
+            />
+
+            <GlanceRow
+              label="Delivery"
+              value={deliveryCount}
+            />
+
+            <GlanceRow
+              label="Pickup"
+              value={pickupCount}
+            />
+
+            <GlanceRow
+              label="Dine-in"
+              value={dineInCount}
+            />
 
           </div>
 
         </section>
-      )}
 
-      {/* BUSINESS DATA */}
-      {hasTodayData && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      </div>
 
-          {/* ORDER CHANNELS */}
-          <DashboardCard
-            title="Order Channels"
-            subtitle="Today's order distribution"
-          >
-            <div className="space-y-4">
+      {/* =========================================================
+          LOWER DASHBOARD
+      ========================================================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-12 gap-4">
 
-              <BreakdownRow
-                label="Delivery"
-                value={deliveryCount}
-                total={todaysOrders.length}
-              />
+        {/* TOP SELLING */}
+        <section className="lg:col-span-1 xl:col-span-5 bg-white rounded-3xl border border-[#E8D8BD] p-5">
 
-              <BreakdownRow
-                label="Pickup"
-                value={pickupCount}
-                total={todaysOrders.length}
-              />
+          <div className="flex items-center justify-between">
 
-              <BreakdownRow
-                label="Dine-in"
-                value={dineInCount}
-                total={todaysOrders.length}
-              />
+            <div>
+              <h2 className="text-lg font-black text-[#20221A]">
+                Top Selling Items
+              </h2>
+
+              <p className="mt-1 text-xs text-stone-500">
+                Today's item performance
+              </p>
+            </div>
+
+            <span className="text-xs font-semibold text-stone-400">
+              Today
+            </span>
+
+          </div>
+
+          {topSellingItems.length === 0 ? (
+            <div className="py-12 text-center">
+              <Package className="w-8 h-8 mx-auto text-[#CFC4B3]" />
+
+              <p className="mt-3 text-sm font-semibold text-stone-500">
+                No item sales yet
+              </p>
+
+              <p className="mt-1 text-xs text-stone-400">
+                Your best-selling items will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-5 space-y-2">
+
+              {topSellingItems.map((item, index) => (
+                <div
+                  key={`${item.name}-${index}`}
+                  className="flex items-center gap-3 py-2.5 border-b border-[#F2ECE3] last:border-0"
+                >
+
+                  <div className="w-7 h-7 rounded-full bg-[#F3E9D7] flex items-center justify-center text-xs font-black text-[#7A7B26]">
+                    {index + 1}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+
+                    <p className="text-sm font-bold text-[#20221A] truncate">
+                      {item.name}
+                    </p>
+
+                    <p className="text-[11px] text-stone-400">
+                      {item.quantity} sold
+                    </p>
+
+                  </div>
+
+                  <p className="text-sm font-black text-[#20221A]">
+                    {formatCurrency(item.sales)}
+                  </p>
+
+                </div>
+              ))}
 
             </div>
-          </DashboardCard>
+          )}
 
-          {/* PAYMENTS */}
-          <DashboardCard
-            title="Payment Summary"
-            subtitle="Today's payment methods"
-          >
-            <div className="grid grid-cols-3 gap-3">
+        </section>
 
-              <PaymentBox
-                label="UPI"
-                count={upiCount}
-                icon={WalletCards}
-              />
+        {/* RIDER STATUS */}
+        <section className="lg:col-span-1 xl:col-span-4 bg-white rounded-3xl border border-[#E8D8BD] p-5">
 
-              <PaymentBox
-                label="Cash"
-                count={cashCount}
-                icon={Banknote}
-              />
+          <div className="flex items-center justify-between">
 
-              <PaymentBox
-                label="Online"
-                count={onlineCount}
-                icon={CreditCard}
-              />
+            <div>
+              <h2 className="text-lg font-black text-[#20221A]">
+                Rider Status
+              </h2>
 
+              <p className="mt-1 text-xs text-stone-500">
+                Current delivery team
+              </p>
             </div>
-          </DashboardCard>
 
-          {/* TOP ITEMS */}
-          <DashboardCard
-            title="Top Selling Items"
-            subtitle="Today's item performance"
-          >
-            {topSellingItems.length === 0 ? (
-              <EmptyText text="No item sales recorded yet." />
-            ) : (
-              <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => setAdminScreen('riders')}
+              className="text-xs font-bold text-[#7A7B26]"
+            >
+              View all
+            </button>
 
-                {topSellingItems.map((item, index) => (
+          </div>
+
+          {riders.length === 0 ? (
+            <div className="py-12 text-center">
+              <Bike className="w-8 h-8 mx-auto text-[#CFC4B3]" />
+
+              <p className="mt-3 text-sm font-semibold text-stone-500">
+                No riders added
+              </p>
+            </div>
+          ) : (
+            <div className="mt-5 space-y-2">
+
+              {riders.slice(0, 4).map((rider) => {
+
+                const status =
+                  rider.status === 'BUSY'
+                    ? 'Busy'
+                    : rider.status === 'ONLINE' ||
+                        rider.isAvailable
+                      ? 'Available'
+                      : 'Offline';
+
+                return (
                   <div
-                    key={`${item.name}-${index}`}
-                    className="flex items-center justify-between gap-3 py-2"
+                    key={rider.id}
+                    className="flex items-center gap-3 py-2.5 border-b border-[#F2ECE3] last:border-0"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
 
-                      <span className="w-7 h-7 rounded-lg bg-cream-100 flex items-center justify-center text-xs font-black text-olive-800 shrink-0">
-                        {index + 1}
-                      </span>
-
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-syzlo-charcoal truncate">
-                          {item.name}
-                        </p>
-
-                        <p className="text-[11px] text-stone-500">
-                          {item.quantity} sold
-                        </p>
-                      </div>
+                    <div className="w-9 h-9 rounded-full bg-[#EEE7D8] flex items-center justify-center">
+                      <Bike className="w-4 h-4 text-[#7A7B26]" />
                     </div>
 
-                    <span className="text-sm font-black text-syzlo-charcoal">
-                      {formatCurrency(item.sales)}
+                    <div className="flex-1 min-w-0">
+
+                      <p className="text-sm font-bold text-[#20221A] truncate">
+                        {rider.name}
+                      </p>
+
+                      <p className="text-[11px] text-stone-400">
+                        {rider.vehicle || 'Delivery'}
+                      </p>
+
+                    </div>
+
+                    <span
+                      className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                        status === 'Available'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : status === 'Busy'
+                            ? 'bg-amber-50 text-amber-700'
+                            : 'bg-stone-100 text-stone-500'
+                      }`}
+                    >
+                      {status}
                     </span>
+
                   </div>
-                ))}
+                );
+              })}
 
-              </div>
-            )}
-          </DashboardCard>
+            </div>
+          )}
 
-          {/* SALES */}
-          <DashboardCard
-            title="Sales Overview"
-            subtitle="Today's revenue"
-          >
-            <div className="flex items-end justify-between gap-4">
+        </section>
 
-              <div>
-                <p className="text-3xl font-black text-syzlo-charcoal">
-                  {formatCurrency(todaySales)}
-                </p>
+        {/* RECENT ACTIVITY */}
+        <section className="lg:col-span-2 xl:col-span-3 bg-white rounded-3xl border border-[#E8D8BD] p-5">
 
-                <p className="mt-1 text-xs text-stone-500">
-                  {validSalesOrders.length} completed/active sales order
-                  {validSalesOrders.length === 1 ? '' : 's'}
-                </p>
-              </div>
+          <div className="flex items-center justify-between">
 
-              <TrendingUp className="w-7 h-7 text-olive-700" />
+            <div>
+              <h2 className="text-lg font-black text-[#20221A]">
+                Recent Activity
+              </h2>
+
+              <p className="mt-1 text-xs text-stone-500">
+                Latest order events
+              </p>
             </div>
 
-            <div className="mt-5 h-2 rounded-full bg-cream-100 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[#7A7B26]"
-                style={{
-                  width:
-                    todaySales > 0
-                      ? '100%'
-                      : '0%',
-                }}
-              />
+            <Clock3 className="w-5 h-5 text-[#7A7B26]" />
+
+          </div>
+
+          {todayOrders.length === 0 ? (
+            <div className="py-12 text-center">
+
+              <Clock3 className="w-8 h-8 mx-auto text-[#CFC4B3]" />
+
+              <p className="mt-3 text-sm font-semibold text-stone-500">
+                No activity yet
+              </p>
+
+              <p className="mt-1 text-xs text-stone-400">
+                Order activity will appear here.
+              </p>
+
             </div>
-          </DashboardCard>
+          ) : (
+            <div className="mt-5 space-y-4">
 
-        </div>
-      )}
+              {recentOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="flex items-start gap-3"
+                >
 
-      {/* QUICK ACTIONS */}
-      <section className="bg-cream-100 rounded-3xl border border-cream-200 p-5">
+                  <div className="w-7 h-7 rounded-full bg-[#F3E9D7] flex items-center justify-center shrink-0">
+                    <CircleCheck className="w-3.5 h-3.5 text-[#7A7B26]" />
+                  </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+
+                    <p className="text-xs font-bold text-[#20221A]">
+                      Order {order.id}
+                    </p>
+
+                    <p className="mt-0.5 text-[11px] text-stone-400">
+                      {getStatusLabel(
+                        String(order.status)
+                      )}
+                    </p>
+
+                  </div>
+
+                </div>
+              ))}
+
+            </div>
+          )}
+
+        </section>
+
+      </div>
+
+      {/* =========================================================
+          PAYMENT + ORDER SOURCE
+      ========================================================== */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <SmallSummaryCard
+          title="UPI Payments"
+          value={paymentCounts.UPI}
+          icon={WalletCards}
+        />
+
+        <SmallSummaryCard
+          title="Cash Payments"
+          value={paymentCounts.Cash}
+          icon={Banknote}
+        />
+
+        <SmallSummaryCard
+          title="Online Payments"
+          value={paymentCounts.Online}
+          icon={CreditCard}
+        />
+
+      </div>
+
+      {/* =========================================================
+          QUICK ADMIN LINKS
+      ========================================================== */}
+      <section className="rounded-3xl bg-[#F5EFE4] border border-[#E8D8BD] p-5">
+
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
           <div>
-            <h2 className="text-sm font-black uppercase tracking-wider text-syzlo-charcoal">
-              Quick Actions
+            <h2 className="text-sm font-black uppercase tracking-wider text-[#20221A]">
+              Administration
             </h2>
 
             <p className="mt-1 text-xs text-stone-500">
-              Common administrative actions
+              Manage the operational areas of your outlet.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
 
-            <ActionButton
-              label="Manage Orders"
-              icon={ShoppingBag}
-              onClick={() => onNavigateTab('orders')}
+            <AdminLink
+              label="Orders"
+              onClick={goToOrders}
             />
 
-            <ActionButton
-              label="Edit Menu"
-              icon={Utensils}
+            <AdminLink
+              label="Kitchen / KDS"
+              onClick={goToKDS}
+            />
+
+            <AdminLink
+              label="POS"
+              onClick={goToPOS}
+            />
+
+            <AdminLink
+              label="Menu"
               onClick={() => onNavigateTab('menu')}
             />
 
-            <ActionButton
-              label="Manage Coupons"
-              icon={Tag}
+            <AdminLink
+              label="Coupons"
               onClick={() => onNavigateTab('coupons')}
             />
 
-            <ActionButton
+            <AdminLink
               label="Reports"
-              icon={TrendingUp}
               onClick={() => onNavigateTab('reports')}
             />
 
           </div>
 
         </div>
+
       </section>
-
-      {/* FOOTER STATUS */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-1 pb-2">
-
-        <div className="flex items-center gap-2">
-          <Clock3 className="w-3.5 h-3.5 text-stone-400" />
-
-          <span className="text-[11px] text-stone-500">
-            Dashboard uses live application data.
-          </span>
-        </div>
-
-        <span className="text-[11px] font-semibold text-stone-400">
-          SYZLO ADMIN
-        </span>
-
-      </div>
 
     </div>
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/* COMPONENTS                                                                 */
-/* -------------------------------------------------------------------------- */
+/* ===============================================================
+   KPI CARD
+================================================================ */
 
-interface MetricCardProps {
+interface KpiCardProps {
   label: string;
   value: string;
+  subtitle?: string;
   icon: React.ElementType;
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({
+const KpiCard: React.FC<KpiCardProps> = ({
   label,
   value,
+  subtitle,
   icon: Icon,
 }) => (
-  <div className="bg-white rounded-2xl border border-cream-200 shadow-xs p-4">
+  <div className="bg-white rounded-2xl border border-[#E8D8BD] p-4 shadow-[0_2px_10px_rgba(60,45,20,0.03)]">
 
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-stone-500">
+    <div className="flex items-center gap-3">
+
+      <div className="w-10 h-10 rounded-full bg-[#F2E8D5] flex items-center justify-center shrink-0">
+        <Icon className="w-5 h-5 text-[#7A7B26]" />
+      </div>
+
+      <div className="min-w-0">
+
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+          {label}
+        </p>
+
+        <p className="mt-1 text-xl font-black text-[#20221A] truncate">
+          {value}
+        </p>
+
+        {subtitle && (
+          <p className="mt-0.5 text-[10px] text-stone-400 truncate">
+            {subtitle}
+          </p>
+        )}
+
+      </div>
+
+    </div>
+
+  </div>
+);
+
+/* ===============================================================
+   STATUS LINE
+================================================================ */
+
+const StatusLine: React.FC<{
+  label: string;
+  value: string;
+}> = ({ label, value }) => (
+  <div className="flex items-center justify-between gap-3">
+
+    <div className="flex items-center gap-2">
+
+      <span className="w-2 h-2 rounded-full bg-[#B9B79D]" />
+
+      <span className="text-xs text-stone-600">
         {label}
       </span>
 
-      <Icon className="w-4 h-4 text-olive-700 shrink-0" />
     </div>
 
-    <p className="mt-3 text-xl sm:text-2xl font-black text-syzlo-charcoal">
+    <span className="text-xs font-bold text-stone-500">
       {value}
-    </p>
+    </span>
 
   </div>
 );
 
-interface PipelineCardProps {
-  label: string;
-  count: number;
-  icon: React.ElementType;
-}
+/* ===============================================================
+   QUICK ACTION
+================================================================ */
 
-const PipelineCard: React.FC<PipelineCardProps> = ({
-  label,
-  count,
-  icon: Icon,
-}) => (
-  <div className="p-5">
-
-    <div className="flex items-center justify-between gap-3">
-
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-          {label}
-        </p>
-
-        <p className="mt-2 text-2xl font-black text-syzlo-charcoal">
-          {count}
-        </p>
-      </div>
-
-      <Icon className="w-5 h-5 text-olive-700" />
-
-    </div>
-
-  </div>
-);
-
-interface DashboardCardProps {
-  title: string;
-  subtitle: string;
-  children: React.ReactNode;
-}
-
-const DashboardCard: React.FC<DashboardCardProps> = ({
-  title,
-  subtitle,
-  children,
-}) => (
-  <section className="bg-white rounded-3xl border border-cream-200 shadow-xs p-5">
-
-    <div className="mb-5">
-      <h2 className="text-sm font-black uppercase tracking-wider text-syzlo-charcoal">
-        {title}
-      </h2>
-
-      <p className="mt-1 text-xs text-stone-500">
-        {subtitle}
-      </p>
-    </div>
-
-    {children}
-
-  </section>
-);
-
-interface BreakdownRowProps {
-  label: string;
-  value: number;
-  total: number;
-}
-
-const BreakdownRow: React.FC<BreakdownRowProps> = ({
-  label,
-  value,
-  total,
-}) => {
-  const percentage =
-    total > 0 ? Math.round((value / total) * 100) : 0;
-
-  return (
-    <div>
-
-      <div className="flex items-center justify-between mb-1.5">
-
-        <span className="text-sm font-semibold text-stone-600">
-          {label}
-        </span>
-
-        <span className="text-sm font-black text-syzlo-charcoal">
-          {value}
-        </span>
-
-      </div>
-
-      <div className="h-2 rounded-full bg-cream-100 overflow-hidden">
-
-        <div
-          className="h-full rounded-full bg-[#7A7B26] transition-all"
-          style={{
-            width: `${percentage}%`,
-          }}
-        />
-
-      </div>
-
-    </div>
-  );
-};
-
-interface PaymentBoxProps {
-  label: string;
-  count: number;
-  icon: React.ElementType;
-}
-
-const PaymentBox: React.FC<PaymentBoxProps> = ({
-  label,
-  count,
-  icon: Icon,
-}) => (
-  <div className="rounded-2xl border border-cream-200 bg-cream-50 p-4 text-center">
-
-    <Icon className="w-5 h-5 mx-auto text-olive-700" />
-
-    <p className="mt-2 text-xl font-black text-syzlo-charcoal">
-      {count}
-    </p>
-
-    <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-stone-500">
-      {label}
-    </p>
-
-  </div>
-);
-
-interface ActionButtonProps {
+const QuickAction: React.FC<{
   label: string;
   icon: React.ElementType;
   onClick: () => void;
-}
-
-const ActionButton: React.FC<ActionButtonProps> = ({
-  label,
-  icon: Icon,
-  onClick,
-}) => (
+}> = ({ label, icon: Icon, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-cream-200 text-xs font-bold text-syzlo-charcoal hover:bg-[#7A7B26] hover:text-white hover:border-[#7A7B26] transition-colors"
+    className="min-h-[72px] rounded-2xl border border-[#E8D8BD] bg-[#FAF7F0] hover:bg-[#F1E8D7] transition-colors flex flex-col items-center justify-center gap-2 text-center"
   >
-    <Icon className="w-3.5 h-3.5" />
-    {label}
+    <Icon className="w-5 h-5 text-[#7A7B26]" />
+
+    <span className="text-[11px] font-bold text-[#20221A]">
+      {label}
+    </span>
   </button>
 );
 
-const EmptyText: React.FC<{ text: string }> = ({ text }) => (
-  <div className="py-8 text-center">
-    <p className="text-sm text-stone-400">
-      {text}
-    </p>
+/* ===============================================================
+   ORDER FILTER
+================================================================ */
+
+const OrderFilter: React.FC<{
+  label: string;
+  count: number;
+  active?: boolean;
+}> = ({ label, count, active }) => (
+  <div
+    className={`px-3 py-1.5 rounded-lg text-[11px] font-bold ${
+      active
+        ? 'bg-[#7A7B26] text-white'
+        : 'bg-[#F7F3EB] text-stone-600'
+    }`}
+  >
+    {label} ({count})
   </div>
+);
+
+/* ===============================================================
+   EMPTY ORDERS
+================================================================ */
+
+const EmptyOrders = () => (
+  <div className="py-14 px-5 text-center">
+
+    <div className="mx-auto w-12 h-12 rounded-2xl bg-[#F5EFE4] flex items-center justify-center">
+      <ReceiptText className="w-5 h-5 text-[#7A7B26]" />
+    </div>
+
+    <h3 className="mt-4 text-sm font-black text-[#20221A]">
+      No live orders
+    </h3>
+
+    <p className="mt-1 text-xs text-stone-400 max-w-sm mx-auto">
+      New customer, POS and delivery orders will appear
+      here when SYZLO starts receiving orders.
+    </p>
+
+  </div>
+);
+
+/* ===============================================================
+   LIVE ORDER ROW
+================================================================ */
+
+const LiveOrderRow: React.FC<{
+  order: any;
+}> = ({ order }) => (
+  <div className="p-4 hover:bg-[#FCFAF6] transition-colors">
+
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+
+      <div className="md:col-span-2">
+
+        <p className="text-xs font-black text-[#8C1E16]">
+          #{order.id}
+        </p>
+
+        <p className="mt-1 text-[10px] text-stone-400">
+          {new Date(order.createdAt).toLocaleTimeString(
+            [],
+            {
+              hour: '2-digit',
+              minute: '2-digit',
+            }
+          )}
+        </p>
+
+      </div>
+
+      <div className="md:col-span-3">
+
+        <p className="text-xs font-bold text-[#20221A]">
+          {order.customerName || 'Customer'}
+        </p>
+
+        <p className="mt-1 text-[10px] text-stone-400">
+          {order.customerPhone || 'Phone unavailable'}
+        </p>
+
+      </div>
+
+      <div className="md:col-span-3">
+
+        <div className="flex items-center gap-2">
+
+          <ShoppingBag className="w-3.5 h-3.5 text-[#7A7B26]" />
+
+          <span className="text-xs font-semibold text-stone-600">
+            {order.items?.length || 0} item
+            {order.items?.length === 1 ? '' : 's'}
+          </span>
+
+        </div>
+
+        <p className="mt-1 text-[10px] text-stone-400">
+          {getOrderTypeLabel(
+            String(order.orderType)
+          )}
+        </p>
+
+      </div>
+
+      <div className="md:col-span-2">
+
+        <span className="inline-flex px-2.5 py-1 rounded-full bg-[#F3E9D7] text-[10px] font-bold text-[#7A7B26]">
+          {getStatusLabel(
+            String(order.status)
+          )}
+        </span>
+
+      </div>
+
+      <div className="md:col-span-2 text-left md:text-right">
+
+        <p className="text-sm font-black text-[#20221A]">
+          {formatCurrency(
+            Number(order.grandTotal || 0)
+          )}
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+);
+
+/* ===============================================================
+   GLANCE ROW
+================================================================ */
+
+const GlanceRow: React.FC<{
+  label: string;
+  value: string | number;
+}> = ({ label, value }) => (
+  <div className="flex items-center justify-between py-3 border-b border-[#F2ECE3] last:border-0">
+
+    <span className="text-xs text-stone-500">
+      {label}
+    </span>
+
+    <span className="text-sm font-black text-[#20221A]">
+      {value}
+    </span>
+
+  </div>
+);
+
+/* ===============================================================
+   SMALL SUMMARY
+================================================================ */
+
+const SmallSummaryCard: React.FC<{
+  title: string;
+  value: number;
+  icon: React.ElementType;
+}> = ({ title, value, icon: Icon }) => (
+  <div className="bg-white rounded-2xl border border-[#E8D8BD] p-4 flex items-center gap-3">
+
+    <div className="w-10 h-10 rounded-xl bg-[#F4EDDF] flex items-center justify-center">
+      <Icon className="w-4 h-4 text-[#7A7B26]" />
+    </div>
+
+    <div>
+
+      <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
+        {title}
+      </p>
+
+      <p className="mt-1 text-xl font-black text-[#20221A]">
+        {value}
+      </p>
+
+    </div>
+
+  </div>
+);
+
+/* ===============================================================
+   ADMIN LINK
+================================================================ */
+
+const AdminLink: React.FC<{
+  label: string;
+  onClick: () => void;
+}> = ({ label, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#E4D6BF] hover:bg-[#7A7B26] hover:text-white transition-colors text-xs font-bold text-[#20221A]"
+  >
+    {label}
+    <ChevronRight className="w-3 h-3" />
+  </button>
+);
+
+/* ===============================================================
+   ICON HELPER
+================================================================ */
+
+const TrendingIcon: React.FC<{
+  className?: string;
+}> = ({ className }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    className={className}
+  >
+    <path d="M3 17l6-6 4 4 8-8" />
+    <path d="M14 7h7v7" />
+  </svg>
 );

@@ -121,12 +121,12 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
         </button>
 
 {/* Right: Mode Toggle */}
-<div className="flex items-center p-1 bg-[#EDE6D6] rounded-full border border-cream-300/60">
+<div className="flex items-center p-1 bg-[#EDE6D6] rounded-full border border-cream-300/60 shrink-0">
   {/* Delivery */}
   <button
     id="order-mode-delivery"
     onClick={() => setOrderType('DELIVERY')}
-    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+    className={`px-2.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
       orderType === 'DELIVERY'
         ? 'bg-[#565F28] text-white shadow-xs'
         : 'text-stone-700 hover:text-stone-900'
@@ -140,15 +140,15 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
     id="order-mode-takeaway-dinein"
     onClick={() => {
       setOrderType('PICKUP');
-      setCustomerScreen('checkout');
     }}
-    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+    className={`px-2.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
       orderType === 'PICKUP' || orderType === 'DINE-IN'
         ? 'bg-[#565F28] text-white shadow-xs'
         : 'text-stone-700 hover:text-stone-900'
     }`}
   >
-    Takeaway / Dine-in
+    <span className="sm:hidden">Takeaway / Dine-in</span>
+    <span className="hidden sm:inline">Takeaway / Dine-in</span>
   </button>
 </div></div>
 

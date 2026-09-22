@@ -12,6 +12,7 @@ import { OsmLocationSettings } from './OsmLocationSettings';
 import { BrandLogoSettings } from './BrandLogoSettings';
 import { StaffRiderManagement } from './StaffRiderManagement';
 import { ReportsAnalytics } from './ReportsAnalytics';
+
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -71,7 +72,6 @@ export const AdminLayout: React.FC = () => {
   const {
     brandConfig,
     orders,
-    riders,
     setAdminScreen,
   } = useApp();
 
@@ -309,25 +309,31 @@ export const AdminLayout: React.FC = () => {
       case 'brand':
         return <BrandLogoSettings />;
 
-    case 'settings':
-  return (
-    <div className="bg-white rounded-xl border border-[#E6DED1] p-8">
-      <h2 className="text-xl font-black">Settings</h2>
-      <p className="mt-2 text-sm text-stone-500">
-        Business settings will be connected here.
-      </p>
-    </div>
-  );
+      case 'settings':
+        return (
+          <div className="bg-white rounded-2xl border border-[#E5DED1] p-8 shadow-[0_2px_12px_rgba(60,50,30,0.03)]">
+            <h2 className="text-xl font-black tracking-tight">
+              Settings
+            </h2>
 
-case 'business':
-  return (
-    <div className="bg-white rounded-xl border border-[#E6DED1] p-8">
-      <h2 className="text-xl font-black">Business Settings</h2>
-      <p className="mt-2 text-sm text-stone-500">
-        Business settings will be connected here.
-      </p>
-    </div>
-  );
+            <p className="mt-2 text-sm text-stone-500">
+              Business settings will be connected here.
+            </p>
+          </div>
+        );
+
+      case 'business':
+        return (
+          <div className="bg-white rounded-2xl border border-[#E5DED1] p-8 shadow-[0_2px_12px_rgba(60,50,30,0.03)]">
+            <h2 className="text-xl font-black tracking-tight">
+              Business Settings
+            </h2>
+
+            <p className="mt-2 text-sm text-stone-500">
+              Business settings will be connected here.
+            </p>
+          </div>
+        );
 
       default:
         return (
@@ -355,12 +361,12 @@ case 'business':
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F3EB] text-[#20221A]">
+    <div className="min-h-screen bg-[#F7F4ED] text-[#20221A]">
 
       {/* MOBILE OVERLAY */}
       {mobileSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px] lg:hidden"
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}
@@ -371,9 +377,9 @@ case 'business':
       <aside
         className={`
           fixed left-0 top-0 bottom-0 z-50
-          w-[225px]
-          bg-[#F8F4EC]
-          border-r border-[#E5D8C2]
+          w-[236px]
+          bg-[#F5F1E8]
+          border-r border-[#E2D8C8]
           flex flex-col
           transition-transform duration-200
           lg:translate-x-0
@@ -386,47 +392,49 @@ case 'business':
       >
 
         {/* BRAND */}
-        <div className="h-[78px] px-6 flex items-center border-b border-[#E9DDC9]">
+        <div className="h-[82px] px-5 flex items-center border-b border-[#E5DCCF]">
 
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 min-w-0">
 
-              {brandConfig.logoUrl ? (
-                <img
-                  src={brandConfig.logoUrl}
-                  alt="SYZLO"
-                  className="w-10 h-10 object-contain"
+            {brandConfig.logoUrl ? (
+              <img
+                src={brandConfig.logoUrl}
+                alt="SYZLO"
+                className="w-10 h-10 object-contain"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-[#565F28] flex items-center justify-center shadow-sm">
+                <Store
+                  className="w-[19px] h-[19px] text-white"
+                  strokeWidth={1.8}
                 />
-              ) : (
-                <div className="w-10 h-10 rounded-xl bg-[#565F28] flex items-center justify-center">
-                  <Store className="w-5 h-5 text-white" />
-                </div>
-              )}
-
-              <div>
-                <h1 className="text-xl font-black tracking-wide">
-                  {brandConfig.brandName || 'SYZLO'}
-                </h1>
-
-                <p className="text-[8px] uppercase tracking-[0.22em] text-stone-500 font-bold">
-                  THE BAO MAKERS
-                </p>
               </div>
+            )}
+
+            <div className="min-w-0">
+
+              <h1 className="text-[21px] leading-none font-black tracking-[0.03em]">
+                {brandConfig.brandName || 'SYZLO'}
+              </h1>
+
+              <p className="mt-1.5 text-[8px] uppercase tracking-[0.22em] text-[#777466] font-bold">
+                THE BAO MAKERS
+              </p>
 
             </div>
+
           </div>
 
           <button
             type="button"
-            onClick={() =>
-              setMobileSidebarOpen(false)
-            }
-            className="ml-auto lg:hidden"
+            onClick={() => setMobileSidebarOpen(false)}
+            className="ml-auto lg:hidden w-8 h-8 rounded-lg hover:bg-[#EAE4D9] flex items-center justify-center"
           >
-            <X className="w-5 h-5" />
+            <X className="w-[18px] h-[18px]" />
           </button>
 
         </div>
+
 
         {/* NAVIGATION */}
         <div className="flex-1 overflow-y-auto px-3 py-5">
@@ -434,11 +442,11 @@ case 'business':
           {navSections.map((section, sectionIndex) => (
             <div
               key={section.title || sectionIndex}
-              className="mb-5"
+              className="mb-6"
             >
 
               {section.title && (
-                <p className="px-3 mb-2 text-[9px] font-black tracking-[0.16em] text-stone-400">
+                <p className="px-3 mb-2.5 text-[9px] font-black tracking-[0.18em] text-[#969080]">
                   {section.title}
                 </p>
               )}
@@ -447,6 +455,7 @@ case 'business':
 
                 {section.items.map((item) => {
                   const Icon = item.icon;
+
                   const active =
                     activeTab === item.id;
 
@@ -458,45 +467,61 @@ case 'business':
                         handleNavigation(item.id)
                       }
                       className={`
+                        group
                         w-full
+                        min-h-[42px]
                         flex items-center gap-3
-                        px-3 py-2.5
+                        px-3
                         rounded-xl
                         text-left
-                        transition-all
+                        transition-all duration-150
                         ${
                           active
-                            ? 'bg-[#E7E2CE] text-[#20221A] font-bold'
-                            : 'text-stone-700 hover:bg-[#EEE8DC]'
+                            ? 'bg-[#DCDDBF] text-[#41471E] shadow-[0_1px_2px_rgba(60,55,20,0.05)]'
+                            : 'text-[#55564E] hover:bg-[#EBE5D9] hover:text-[#292B23]'
                         }
                       `}
                     >
 
-                      <Icon
+                      <span
                         className={`
-                          w-[18px] h-[18px]
+                          w-8 h-8 rounded-lg
+                          flex items-center justify-center
                           shrink-0
                           ${
                             active
-                              ? 'text-[#20221A]'
-                              : 'text-stone-700'
+                              ? 'bg-[#565F28] text-white'
+                              : 'bg-transparent text-[#67675F] group-hover:text-[#35372F]'
                           }
                         `}
-                        strokeWidth={1.8}
-                      />
+                      >
+                        <Icon
+                          className="w-[17px] h-[17px]"
+                          strokeWidth={1.8}
+                        />
+                      </span>
 
-                      <span className="flex-1 text-sm">
+                      <span
+                        className={`
+                          flex-1 text-[13px]
+                          ${
+                            active
+                              ? 'font-bold'
+                              : 'font-medium'
+                          }
+                        `}
+                      >
                         {item.label}
                       </span>
 
                       {item.badge && (
-                        <span className="min-w-[22px] h-[20px] px-1.5 rounded-full bg-[#D9423A] text-white text-[10px] font-black flex items-center justify-center">
+                        <span className="min-w-[22px] h-[20px] px-1.5 rounded-full bg-[#C94138] text-white text-[10px] font-black flex items-center justify-center">
                           {item.badge}
                         </span>
                       )}
 
                       {item.id === 'pos' && (
-                        <span className="px-2 py-0.5 rounded-full bg-[#DDEBD4] text-[#427239] text-[9px] font-black">
+                        <span className="px-2 py-0.5 rounded-full bg-[#DCE8D5] text-[#4B703D] text-[8px] font-black uppercase tracking-wide">
                           New
                         </span>
                       )}
@@ -506,26 +531,41 @@ case 'business':
                 })}
 
               </div>
+
             </div>
           ))}
 
         </div>
 
+
         {/* SIDEBAR FOOTER */}
-        <div className="p-4 border-t border-[#E5D8C2]">
+        <div className="p-4 border-t border-[#E2D8C8]">
 
-          <div className="rounded-2xl overflow-hidden bg-[#31351F] h-[125px] relative">
+          <div className="rounded-2xl overflow-hidden bg-[#565F28] min-h-[112px] relative">
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#263018] to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#687238] via-[#565F28] to-[#3E441D]" />
 
-            <div className="absolute bottom-4 left-4 right-4">
-              <p className="text-white text-sm font-black leading-tight">
-                Good Food
+            <div className="relative p-4 h-full flex flex-col justify-between">
+
+              <div className="flex items-center justify-between">
+
+                <span className="text-[9px] uppercase tracking-[0.15em] text-white/60 font-bold">
+                  SYZLO
+                </span>
+
+                <span className="flex items-center gap-1.5 text-[9px] text-white/80 font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#B9D68E]" />
+                  Outlet Online
+                </span>
+
+              </div>
+
+              <p className="mt-5 text-white text-[13px] leading-[1.35] font-bold">
+                Good Food.
                 <br />
-                More People
-                <br />
-                Happier Cities.
+                Happier People.
               </p>
+
             </div>
 
           </div>
@@ -534,58 +574,70 @@ case 'business':
 
       </aside>
 
+
       {/* ======================================================
           MAIN AREA
       ======================================================= */}
-      <main className="lg:ml-[225px] min-h-screen">
+      <main className="lg:ml-[236px] min-h-screen">
+
 
         {/* TOP BAR */}
-        <header className="h-[78px] bg-[#FBF9F5] border-b border-[#E7DDCE] px-4 sm:px-6 lg:px-7 flex items-center">
+        <header className="h-[82px] bg-[#FBFAF7] border-b border-[#E5DED2] px-4 sm:px-6 lg:px-8 flex items-center">
 
           <div className="flex items-center gap-4 w-full">
 
+
+            {/* MOBILE MENU */}
             <button
               type="button"
               onClick={() =>
                 setMobileSidebarOpen(true)
               }
-              className="lg:hidden"
+              className="lg:hidden w-9 h-9 rounded-lg hover:bg-[#EEE9E0] flex items-center justify-center"
             >
-              <Menu className="w-6 h-6" />
+              <Menu
+                className="w-[20px] h-[20px]"
+                strokeWidth={1.8}
+              />
             </button>
 
-            {/* OUTLET */}
-            <div className="hidden sm:block">
 
-              <div className="flex items-center gap-2">
+            {/* OUTLET INFORMATION */}
+            <div className="hidden sm:block min-w-[210px]">
 
-                <h2 className="text-base font-black">
+              <div className="flex items-center gap-2.5">
+
+                <h2 className="text-[15px] font-black tracking-tight">
                   SYZLO Guwahati
                 </h2>
 
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#DFF0DD] text-[#2F7134] text-[10px] font-black">
-                  <span className="w-2 h-2 rounded-full bg-[#24913A]" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E4EFDF] text-[#4B713E] text-[9px] font-black">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4B8B38]" />
                   Open
                 </span>
 
               </div>
 
-              <p className="text-[11px] text-stone-500 mt-1">
+              <p className="text-[10px] text-[#858177] mt-1.5">
                 Outlet ID: SYZ-GHY-001
-                <span className="mx-2">|</span>
+                <span className="mx-2 text-[#C4BBAE]">|</span>
                 Guwahati, Assam
               </p>
 
             </div>
 
+
             {/* SEARCH */}
-            <div className="hidden md:flex flex-1 max-w-[390px] mx-auto">
+            <div className="hidden md:flex flex-1 max-w-[430px] mx-auto">
 
-              <div className="w-full h-10 bg-white border border-[#DED8CF] rounded-xl flex items-center gap-2 px-3">
+              <div className="w-full h-[42px] bg-white border border-[#DED8CF] rounded-xl flex items-center gap-2.5 px-3.5 shadow-[0_1px_2px_rgba(50,40,20,0.02)]">
 
-                <Search className="w-4 h-4 text-stone-400" />
+                <Search
+                  className="w-[16px] h-[16px] text-[#9B968D]"
+                  strokeWidth={1.8}
+                />
 
-                <span className="text-xs text-stone-400">
+                <span className="text-[11px] text-[#99948B]">
                   Search orders, customers, menu...
                 </span>
 
@@ -593,40 +645,54 @@ case 'business':
 
             </div>
 
-            {/* RIGHT */}
-            <div className="ml-auto flex items-center gap-4">
 
+            {/* RIGHT SIDE */}
+            <div className="ml-auto flex items-center gap-3">
+
+
+              {/* NOTIFICATIONS */}
               <button
                 type="button"
-                className="relative w-9 h-9 rounded-full bg-white border border-[#E0D8CC] flex items-center justify-center"
+                className="relative w-10 h-10 rounded-xl bg-white border border-[#E0D9CF] flex items-center justify-center hover:bg-[#F5F1E9] transition-colors"
               >
-                <Bell className="w-4 h-4" />
+
+                <Bell
+                  className="w-[17px] h-[17px] text-[#4F5048]"
+                  strokeWidth={1.8}
+                />
 
                 {newOrderCount > 0 && (
-                  <span className="absolute -right-1 -top-1 w-5 h-5 rounded-full bg-[#D9423A] text-white text-[9px] font-black flex items-center justify-center">
+                  <span className="absolute -right-1 -top-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#C94138] text-white text-[8px] font-black flex items-center justify-center border-2 border-[#FBFAF7]">
                     {newOrderCount}
                   </span>
                 )}
 
               </button>
 
-              <div className="hidden sm:flex items-center gap-2">
 
-                <div className="w-9 h-9 rounded-full bg-[#5E5C2B] text-white flex items-center justify-center font-black">
+              {/* ADMIN PROFILE */}
+              <div className="hidden sm:flex items-center gap-2.5 pl-2">
+
+                <div className="w-9 h-9 rounded-full bg-[#565F28] text-white flex items-center justify-center font-black text-sm">
                   A
                 </div>
 
-                <div className="hidden md:block">
-                  <p className="text-sm font-bold">
+                <div className="hidden lg:block">
+
+                  <p className="text-[12px] font-bold leading-none">
                     Admin
                   </p>
 
-                  <p className="text-[10px] text-stone-500">
+                  <p className="text-[9px] text-[#89857D] mt-1">
                     Outlet Manager
                   </p>
+
                 </div>
 
-                <ChevronDown className="w-4 h-4 text-stone-500" />
+                <ChevronDown
+                  className="w-[15px] h-[15px] text-[#8D897F]"
+                  strokeWidth={1.8}
+                />
 
               </div>
 
@@ -636,10 +702,11 @@ case 'business':
 
         </header>
 
-        {/* CONTENT */}
-        <div className="p-4 sm:p-5 lg:p-6 xl:p-7">
 
-          <div className="max-w-[1320px] mx-auto">
+        {/* CONTENT */}
+        <div className="p-4 sm:p-5 lg:p-7 xl:p-8">
+
+          <div className="max-w-[1380px] mx-auto">
             {renderContent()}
           </div>
 

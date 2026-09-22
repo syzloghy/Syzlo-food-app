@@ -92,7 +92,24 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center gap-1 sm:gap-2 -mr-2">
               <button
                 id="header-search-button"
-                onClick={() => setCustomerScreen('menu')}
+              onClick={() => {
+  if (customerScreen !== 'home') {
+    setCustomerScreen('home');
+  }
+
+  setTimeout(() => {
+    document
+      .getElementById('home-search-input')
+      ?.focus();
+
+    document
+      .getElementById('home-search-input')
+      ?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+  }, 50);
+}}
                 className="p-2 rounded-xl text-stone-800 hover:bg-cream-200/80 transition-colors focus:outline-hidden"
                 title="Search Menu"
               >
@@ -120,11 +137,13 @@ export const Navbar: React.FC = () => {
       {/* Right Slide-over Menu Bar Drawer */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end animate-fadeIn"
-          onClick={() => setIsSidebarOpen(false)}
+         <div
+  className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-start animate-fadeIn"
+  onClick={() => setIsSidebarOpen(false)}
+>
         >
           <div
-            className="w-full max-w-sm sm:max-w-md bg-[#FAF6EF] h-full shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out border-l border-cream-300"
+className="w-[82%] max-w-sm bg-[#FAF6EF] h-full shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out border-r border-cream-300"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}

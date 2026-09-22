@@ -1087,7 +1087,7 @@ const placeCustomerOrder = async (
       paymentStatus:
         orderPayload.paymentStatus || 'PAID',
 
-      status: 'ORDER_PLACED',
+      status: 'placed',
 
       createdAt: now.toISOString(),
 
@@ -1114,8 +1114,7 @@ const placeCustomerOrder = async (
           : 15,
 
       logs: [
-        {
-          status: 'ORDER_PLACED',
+        {status: 'placed',
           timestamp: timeFormatted,
           note:
             `Order placed via ${
@@ -1139,10 +1138,25 @@ const placeCustomerOrder = async (
       .insert({
         order_number: orderId,
         customer_id: user.id,
-        order_type: newOrder.orderType,
-        status: 'ORDER_PLACED',
-        payment_status: newOrder.paymentStatus,
-        payment_method: newOrder.paymentMethod,
+       order_type:
+  newOrder.orderType === 'DELIVERY'
+    ? 'delivery'
+    : newOrder.orderType === 'PICKUP'
+      ? 'pickup'
+      : 'dine_in',
+        status: 'placed',
+        payment_status:
+  newOrder.paymentStatus === 'PAID'
+    ? 'paid'
+    : newOrder.paymentStatus === 'PENDING'
+      ? 'pending'
+      : 'failed',
+        payment_method:
+  newOrder.paymentMethod === 'UPI'
+    ? 'upi'
+    : newOrder.paymentMethod === 'CASH'
+      ? 'cash'
+      : 'online',
 
         subtotal: breakdown.itemTotal,
         discount: breakdown.discount,

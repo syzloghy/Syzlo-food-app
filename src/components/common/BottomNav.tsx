@@ -33,8 +33,8 @@ export const BottomNav: React.FC = () => {
   icon: React.ReactNode;
 }[] = [
   { id: 'home', label: 'Home', icon: <Home className="w-5 h-5" /> },
-  { id: 'orders', label: 'Orders', icon: <ReceiptText className="w-5 h-5" /> },
   { id: 'offers', label: 'Offers', icon: <Tag className="w-5 h-5" /> },
+  { id: 'orders', label: 'Orders', icon: <ReceiptText className="w-5 h-5" /> },
   { id: 'profile', label: 'Account', icon: <User className="w-5 h-5" /> },
 ];
 

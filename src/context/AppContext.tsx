@@ -1013,7 +1013,9 @@ const toggleHeroBannerStatus = async (
   };
 
   // Order Placement
-  const placeCustomerOrder = (orderPayload: Partial<CustomerOrder>): CustomerOrder => {
+ const placeCustomerOrder = async (
+  orderPayload: Partial<CustomerOrder>
+): Promise<CustomerOrder> => {
     const isPOS = orderPayload.source === 'POS';
     const orderId = orderPayload.id || orderService.generateOrderId(isPOS);
     const orderItems = orderPayload.items && orderPayload.items.length > 0 ? orderPayload.items : cart;

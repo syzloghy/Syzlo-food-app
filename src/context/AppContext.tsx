@@ -140,7 +140,10 @@ toggleHeroBannerStatus: (id: string) => Promise<void>;
   placeCustomerOrder: (orderPayload: Partial<CustomerOrder>) => CustomerOrder;
   updateOrderStatus: (orderId: string, status: OrderStatus, note?: string) => void;
   assignRider: (orderId: string, riderId: string) => void;
-  assignRiderToOrder: (orderId: string, riderId: string) => void;
+ assignRiderToOrder: (
+  orderId: string,
+  riderId: string
+) => Promise<string | null>;
   cancelOrder: (orderId: string, reason?: string) => void;
 
  // Rider Operations

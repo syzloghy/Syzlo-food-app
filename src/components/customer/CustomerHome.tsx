@@ -233,8 +233,9 @@ const getCategoryImage = (categoryId: string, fallback: string) =>
       </div>
 
      {/* 4. CIRCULAR DISH CATEGORIES ROW */}
-<div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5">
-  <div className="flex items-center justify-between gap-3 overflow-x-auto pb-2 scrollbar-none">
+<div className="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-cream-200/70">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 pb-2">
+    <div className="flex items-center justify-between gap-3 overflow-x-auto scrollbar-none">
 
     {/* 1. All Category */}
     <button
@@ -433,7 +434,7 @@ src={getCategoryImage(
       </span>
     </button>
   </div>
-</div>
+</div></div>
 
       {/* 5. POPULAR ITEMS 2-COLUMN GRID (Matches reference image syz.png) */}
       <div id="popular-items-section" className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">

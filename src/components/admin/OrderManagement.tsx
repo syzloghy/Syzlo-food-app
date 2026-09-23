@@ -102,19 +102,172 @@ export const OrderManagement: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Top Controls: Search & Tabs */}
-      <div className="bg-white p-4 rounded-3xl border border-cream-300 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        {/* Search */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
-          <input
-            type="text"
-            placeholder="Search by Order ID, name or phone..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-3 py-2.5 text-xs font-medium rounded-xl border border-cream-300 focus:outline-hidden focus:border-olive-500"
-          />
-        </div>
+      
+     {/* =====================================================
+    ORDERS HEADER
+===================================================== */}
+<div className="space-y-4">
+
+  {/* PAGE HEADER */}
+  <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+
+    <div>
+      <p className="text-[9px] uppercase tracking-[0.18em] font-black text-[#969080]">
+        Operations
+      </p>
+
+      <div className="flex items-center gap-2.5 mt-1.5">
+        <h1 className="text-[24px] font-black tracking-tight text-[#20221A]">
+          Orders
+        </h1>
+
+        <span className="min-w-[28px] h-[22px] px-2 rounded-full bg-[#E9E8D7] text-[#565F28] text-[9px] font-black flex items-center justify-center">
+          {filteredOrders.length}
+        </span>
+      </div>
+
+      <p className="mt-1 text-[11px] text-[#969188]">
+        Manage incoming orders, preparation and delivery.
+      </p>
+    </div>
+
+    <div className="flex items-center gap-2">
+
+      <div className="hidden sm:flex items-center gap-2 px-3 h-9 rounded-lg bg-[#F3F0E8] border border-[#E5DED1]">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#565F28]" />
+        <span className="text-[9px] font-bold text-[#66635A]">
+          Outlet Online
+        </span>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  {/* SEARCH + FILTERS */}
+  <div className="bg-white rounded-2xl border border-[#E4DDD0] shadow-[0_2px_12px_rgba(60,50,30,0.03)] overflow-hidden">
+
+    {/* SEARCH */}
+    <div className="p-4 border-b border-[#EEE8DE]">
+
+      <div className="relative w-full">
+
+        <Search
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-[#99938A]"
+          strokeWidth={1.8}
+        />
+
+        <input
+          type="text"
+          placeholder="Search order ID, customer name or phone..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="
+            w-full
+            h-[42px]
+            pl-10
+            pr-10
+            text-[11px]
+            font-medium
+            text-[#34352F]
+            bg-[#FAF8F4]
+            border
+            border-[#E3DDD3]
+            rounded-xl
+            outline-none
+            placeholder:text-[#AAA49A]
+            focus:bg-white
+            focus:border-[#A6AA7B]
+            transition-colors
+          "
+        />
+
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="
+              absolute
+              right-3
+              top-1/2
+              -translate-y-1/2
+              w-6
+              h-6
+              rounded-md
+              flex
+              items-center
+              justify-center
+              text-[#99938A]
+              hover:bg-[#ECE8E0]
+              hover:text-[#565F28]
+            "
+          >
+            <X
+              className="w-[14px] h-[14px]"
+              strokeWidth={1.8}
+            />
+          </button>
+        )}
+
+      </div>
+
+    </div>
+
+
+    {/* STATUS FILTERS */}
+    <div className="px-4 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
+
+      <div className="flex items-center gap-1.5 mr-1 shrink-0">
+
+        <Filter
+          className="w-[13px] h-[13px] text-[#888278]"
+          strokeWidth={1.8}
+        />
+
+        <span className="text-[9px] uppercase tracking-[0.12em] font-black text-[#8D887F]">
+          Status
+        </span>
+
+      </div>
+
+      {filterTabs.map((tab) => {
+
+        const active =
+          statusFilter === tab.id;
+
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setStatusFilter(tab.id)}
+            className={`
+              h-[30px]
+              px-3
+              rounded-lg
+              text-[9px]
+              font-bold
+              whitespace-nowrap
+              border
+              transition-all
+              ${
+                active
+                  ? 'bg-[#565F28] border-[#565F28] text-white shadow-[0_1px_3px_rgba(50,55,20,0.12)]'
+                  : 'bg-[#F8F6F1] border-[#E8E1D6] text-[#706C64] hover:bg-[#EFEBE2] hover:text-[#45463E]'
+              }
+            `}
+          >
+            {tab.label}
+          </button>
+        );
+
+      })}
+
+    </div>
+
+  </div>
+
+</div>
 
         {/* Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar w-full sm:w-auto">

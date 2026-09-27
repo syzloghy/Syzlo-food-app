@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { FoodCategory, MenuItem, CartItem, PaymentMethod } from '../../types';
+import {
+  FoodCategory,
+  MenuItem,
+  CartItem,
+  PaymentMethod,
+} from '../../types';
 import { orderService } from '../../services/orderService';
 import { RESTAURANT_LOCATION } from '../../data/mockData';
 import {
@@ -9,540 +14,935 @@ import {
   Plus,
   Minus,
   Trash2,
-  Check,
   Search,
-  Receipt,
   QrCode,
   Banknote,
-  Smartphone,
   X,
+  ShoppingBag,
+  Utensils,
+  Receipt,
+  CheckCircle2,
   User,
   Phone,
+  Clock,
+  ChevronDown,
+  SearchX,
+  CirclePlus,
 } from 'lucide-react';
+
+type PosMode = 'DINE-IN' | 'TAKEAWAY';
+
+const categories: FoodCategory[] = [
+  'ALL',
+  'BAO',
+  'COMBOS',
+  'CHINESE',
+  'STARTERS',
+  'DRINKS',
+];
+
+const tables = Array.from(
+  { length: 12 },
+  (_, index) => `Table ${String(index + 1).padStart(2, '0')}`
+);
+
+const currency = (amount: number) =>
+  `₹${Number(amount || 0).toFixed(2)}`;
 
 export const PointOfSale: React.FC = () => {
   const { menuItems, coupons, placeCustomerOrder } = useApp();
 
-  // POS State
-  const [posMode, setPosMode] = useState<'DINE-IN' | 'TAKEAWAY'>('DINE-IN');
-  const [selectedTable, setSelectedTable] = useState<string>('Table 01');
-  const [selectedCategory, setSelectedCategory] = useState<FoodCategory>('ALL');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [posMode, setPosMode] = useState<PosMode>('DINE-IN');
+  const [selectedTable, setSelectedTable] = useState('Table 01');
+  const [selectedCategory, setSelectedCategory] =
+    useState<FoodCategory>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // POS Cart
   const [posCart, setPosCart] = useState<CartItem[]>([]);
-  const [customerName, setCustomerName] = useState<string>('Walk-in Customer');
-  const [customerPhone, setCustomerPhone] = useState<string>('98000 12345');
-  const [appliedCouponCode, setAppliedCouponCode] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
+  const [customerName, setCustomerName] = useState('Walk-in Customer');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [appliedCouponCode, setAppliedCouponCode] = useState('');
+  const [paymentMethod, setPaymentMethod] =
+    useState<PaymentMethod>('UPI');
 
-  // Completed receipt modal
   const [printedOrder, setPrintedOrder] = useState<any | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const categories: FoodCategory[] = ['ALL', 'BAO', 'COMBOS', 'CHINESE', 'STARTERS', 'DRINKS'];
+  const filteredMenuItems = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
 
-  const filteredMenuItems = menuItems.filter((item) => {
-    const matchesCat = selectedCategory === 'ALL' || item.category === selectedCategory;
-    const matchesSearch =
-      searchQuery === '' ||
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesSearch;
-  });
+    return menuItems.filter((item) => {
+      const matchesCategory =
+        selectedCategory === 'ALL' ||
+        item.category === selectedCategory;
+
+      const matchesSearch =
+        !query ||
+        item.name.toLowerCase().includes(query) ||
+        item.category.toLowerCase().includes(query);
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [menuItems, selectedCategory, searchQuery]);
+
+  const activeCoupon =
+    coupons.find((coupon) => coupon.code === appliedCouponCode) || null;
+
+  const breakdown = useMemo(
+    () =>
+      orderService.calculateOrderBreakdown(
+        posCart,
+        posMode === 'DINE-IN' ? 'DINE-IN' : 'PICKUP',
+        activeCoupon,
+        0
+      ),
+    [posCart, posMode, activeCoupon]
+  );
+
+  const itemCount = posCart.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
 
   const handleAddItem = (item: MenuItem) => {
-    setPosCart((prev) => {
-      const idx = prev.findIndex((ci) => ci.menuItem.id === item.id);
-      if (idx >= 0) {
-        const updated = [...prev];
-        const newQty = updated[idx].quantity + 1;
-        updated[idx] = {
-          ...updated[idx],
-          quantity: newQty,
-          totalPrice: newQty * item.price,
-        };
-        return updated;
-      } else {
-        const newItem: CartItem = {
-          cartItemId: `pos-${Date.now()}-${item.id}`,
-          menuItem: item,
-          quantity: 1,
-          selectedAddOns: [],
-          unitPrice: item.price,
-          totalPrice: item.price,
-        };
-        return [...prev, newItem];
+    setErrorMessage('');
+
+    setPosCart((previous) => {
+      const existingIndex = previous.findIndex(
+        (cartItem) => cartItem.menuItem.id === item.id
+      );
+
+      if (existingIndex >= 0) {
+        return previous.map((cartItem, index) => {
+          if (index !== existingIndex) return cartItem;
+
+          const quantity = cartItem.quantity + 1;
+
+          return {
+            ...cartItem,
+            quantity,
+            totalPrice: quantity * cartItem.unitPrice,
+          };
+        });
       }
+
+      const newItem: CartItem = {
+        cartItemId: `pos-${Date.now()}-${item.id}`,
+        menuItem: item,
+        quantity: 1,
+        selectedAddOns: [],
+        unitPrice: item.price,
+        totalPrice: item.price,
+      };
+
+      return [...previous, newItem];
     });
   };
 
-  const handleUpdateQty = (cartItemId: string, newQty: number) => {
-    if (newQty <= 0) {
-      setPosCart((prev) => prev.filter((ci) => ci.cartItemId !== cartItemId));
-      return;
-    }
-    setPosCart((prev) =>
-      prev.map((ci) =>
-        ci.cartItemId === cartItemId
-          ? { ...ci, quantity: newQty, totalPrice: newQty * ci.unitPrice }
-          : ci
-      )
+  const handleUpdateQty = (
+    cartItemId: string,
+    newQuantity: number
+  ) => {
+    setPosCart((previous) =>
+      newQuantity <= 0
+        ? previous.filter(
+            (item) => item.cartItemId !== cartItemId
+          )
+        : previous.map((item) =>
+            item.cartItemId === cartItemId
+              ? {
+                  ...item,
+                  quantity: newQuantity,
+                  totalPrice: newQuantity * item.unitPrice,
+                }
+              : item
+          )
     );
   };
 
   const clearPosCart = () => {
     setPosCart([]);
+    setAppliedCouponCode('');
+    setErrorMessage('');
   };
 
-  const activeCoupon = coupons.find((c) => c.code === appliedCouponCode) || null;
-  const breakdown = orderService.calculateOrderBreakdown(
-    posCart,
-    posMode === 'DINE-IN' ? 'DINE-IN' : 'PICKUP',
-    activeCoupon,
-    0
-  );
+  const handleCompleteOrder = async () => {
+    if (posCart.length === 0 || isSubmitting) return;
 
-  const handleCompleteOrder = () => {
-    if (posCart.length === 0) return;
+    if (!customerName.trim()) {
+      setErrorMessage('Please enter the customer name.');
+      return;
+    }
 
-    // Place POS order generating sequential ID (1801, 1802...)
-    const newOrder = placeCustomerOrder({
-      source: 'POS',
-      orderType: posMode === 'DINE-IN' ? 'DINE-IN' : 'PICKUP',
-      items: posCart,
-      customerName,
-      customerPhone,
-      dineInTable: posMode === 'DINE-IN' ? selectedTable : undefined,
-      paymentMethod,
-      paymentStatus: 'PAID',
-    });
+    if (!customerPhone.trim()) {
+      setErrorMessage('Please enter the customer phone number.');
+      return;
+    }
 
-    setPrintedOrder(newOrder);
-    setPosCart([]);
+    setIsSubmitting(true);
+    setErrorMessage('');
+
+    try {
+      const newOrder = await placeCustomerOrder({
+        source: 'POS',
+        orderType: posMode === 'DINE-IN' ? 'DINE-IN' : 'PICKUP',
+        items: posCart,
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        dineInTable:
+          posMode === 'DINE-IN' ? selectedTable : undefined,
+        paymentMethod,
+        paymentStatus: 'PAID',
+        couponCode: appliedCouponCode || undefined,
+      });
+
+      if (!newOrder) {
+        throw new Error('The order could not be created.');
+      }
+
+      setPrintedOrder(newOrder);
+      setPosCart([]);
+      setAppliedCouponCode('');
+    } catch (error) {
+      console.error('POS order error:', error);
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to complete the order. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePrint = () => {
     window.print();
   };
 
+  const startNewOrder = () => {
+    setPrintedOrder(null);
+    setCustomerName('Walk-in Customer');
+    setCustomerPhone('');
+    setErrorMessage('');
+  };
+
   return (
-    <div className="min-h-screen bg-[#FAF6EF] p-3 sm:p-6 pb-24">
-      {/* Top POS Header */}
-      <div className="bg-white p-4 rounded-2xl border border-cream-200 shadow-xs mb-4 flex flex-wrap items-center justify-between gap-4">
+    <div className="min-h-screen bg-[#F6F5F0] p-3 sm:p-5 lg:p-6 text-[#292B23]">
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden !important;
+          }
+          #printable-receipt,
+          #printable-receipt * {
+            visibility: visible !important;
+          }
+          #printable-receipt {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 78mm !important;
+            max-width: 78mm !important;
+            padding: 4mm !important;
+            margin: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+            background: white !important;
+            color: black !important;
+            box-shadow: none !important;
+            font-size: 11px !important;
+          }
+          @page {
+            size: 80mm auto;
+            margin: 0;
+          }
+        }
+      `}</style>
+
+      {/* HEADER */}
+      <header className="mb-5 flex flex-col gap-4 rounded-2xl border border-[#E8E6DD] bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-olive-500 text-white flex items-center justify-center font-bold">
-            <Monitor className="w-5 h-5" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#565F28] text-white">
+            <Monitor size={23} strokeWidth={1.8} />
           </div>
+
           <div>
-            <h1 className="font-extrabold text-base sm:text-lg text-syzlo-charcoal">
-              SYZLO Point of Sale (POS)
-            </h1>
-            <span className="text-xs text-stone-500">
-              Terminal #01 • Cashier: Tanmay Joshi
+            <div className="text-lg font-black tracking-tight">
+              SYZLO <span className="font-medium text-[#77786F]">POS</span>
+            </div>
+            <p className="text-xs text-[#85867D]">
+              Point of Sale · Counter Terminal
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 rounded-xl border border-[#E8E6DD] bg-[#F8F7F3] px-3 py-2 text-xs font-semibold text-[#55564E]">
+            <Clock size={15} />
+            <span>
+              {new Date().toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              })}
             </span>
           </div>
-        </div>
 
-        {/* Mode Switcher: DINE-IN | TAKEAWAY */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-cream-100 p-1 rounded-xl border border-cream-300">
-            <button
-              id="pos-mode-dinein"
-              onClick={() => setPosMode('DINE-IN')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                posMode === 'DINE-IN'
-                  ? 'bg-olive-500 text-white shadow-xs'
-                  : 'text-stone-600 hover:text-syzlo-charcoal'
-              }`}
-            >
-              🍽️ DINE-IN
-            </button>
-            <button
-              id="pos-mode-takeaway"
-              onClick={() => setPosMode('TAKEAWAY')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                posMode === 'TAKEAWAY'
-                  ? 'bg-olive-500 text-white shadow-xs'
-                  : 'text-stone-600 hover:text-syzlo-charcoal'
-              }`}
-            >
-              🛍️ TAKEAWAY
-            </button>
+          <div className="flex items-center gap-2 rounded-xl bg-[#EEF0E5] px-3 py-2 text-xs font-bold text-[#565F28]">
+            <span className="h-2 w-2 rounded-full bg-[#565F28]" />
+            POS ACTIVE
           </div>
-
-          {posMode === 'DINE-IN' && (
-            <select
-              value={selectedTable}
-              onChange={(e) => setSelectedTable(e.target.value)}
-              className="px-3 py-1.5 bg-white border border-cream-300 rounded-xl text-xs font-bold text-syzlo-charcoal focus:outline-hidden focus:border-olive-500"
-            >
-              {['Table 01', 'Table 02', 'Table 03', 'Table 04', 'Table 05', 'Table 06'].map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          )}
         </div>
-      </div>
+      </header>
 
-      {/* POS Layout: 2 Columns on Desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left: Food Catalog Grid (7 cols) */}
-        <div className="lg:col-span-7 space-y-4">
-          {/* Search and Category Filter */}
-          <div className="bg-white p-3.5 rounded-2xl border border-cream-200 shadow-xs space-y-3">
+      {/* ORDER TYPE */}
+      <section className="mb-5 rounded-2xl border border-[#E8E6DD] bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-bold">Order type</h2>
+            <p className="mt-1 text-xs text-[#85867D]">
+              Select how this customer is ordering
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:max-w-xl">
+          <button
+            type="button"
+            onClick={() => setPosMode('DINE-IN')}
+            className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold transition ${
+              posMode === 'DINE-IN'
+                ? 'border-[#565F28] bg-[#565F28] text-white shadow-sm'
+                : 'border-[#E8E6DD] bg-white text-[#55564E] hover:bg-[#F8F7F3]'
+            }`}
+          >
+            <Utensils size={18} />
+            Dine-in
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPosMode('TAKEAWAY')}
+            className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold transition ${
+              posMode === 'TAKEAWAY'
+                ? 'border-[#565F28] bg-[#565F28] text-white shadow-sm'
+                : 'border-[#E8E6DD] bg-white text-[#55564E] hover:bg-[#F8F7F3]'
+            }`}
+          >
+            <ShoppingBag size={18} />
+            Takeaway
+          </button>
+        </div>
+
+        {posMode === 'DINE-IN' && (
+          <div className="mt-4 max-w-xs">
+            <label className="mb-1.5 block text-xs font-bold text-[#66675E]">
+              Select table
+            </label>
             <div className="relative">
-              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
-              <input
-                type="text"
-                placeholder="Search food by name or category..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs font-medium rounded-xl border border-cream-300 focus:outline-hidden focus:border-olive-500"
+              <select
+                value={selectedTable}
+                onChange={(event) =>
+                  setSelectedTable(event.target.value)
+                }
+                className="w-full appearance-none rounded-xl border border-[#E8E6DD] bg-[#FAF9F6] px-3 py-3 pr-9 text-sm font-semibold outline-none focus:border-[#565F28]"
+              >
+                {tables.map((table) => (
+                  <option key={table} value={table}>
+                    {table}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#77786F]"
               />
             </div>
+          </div>
+        )}
+      </section>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-              {categories.map((cat) => (
+      {/* MAIN POS */}
+      <main className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+        {/* MENU */}
+        <section className="min-w-0 rounded-2xl border border-[#E8E6DD] bg-white p-4 shadow-sm sm:p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-extrabold">Menu</h2>
+              <p className="mt-1 text-xs text-[#85867D]">
+                Select items to add to the order
+              </p>
+            </div>
+            <div className="rounded-lg bg-[#F2F1EC] px-3 py-2 text-xs font-bold text-[#565F28]">
+              {filteredMenuItems.length} items
+            </div>
+          </div>
+
+          {/* SEARCH */}
+          <div className="relative mb-4">
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999A91]"
+            />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search menu items..."
+              className="w-full rounded-xl border border-[#E8E6DD] bg-[#FAF9F6] py-3 pl-10 pr-4 text-sm outline-none transition focus:border-[#565F28] focus:bg-white"
+            />
+          </div>
+
+          {/* CATEGORIES */}
+          <div className="mb-5 flex gap-2 overflow-x-auto pb-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setSelectedCategory(category)}
+                className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-bold transition ${
+                  selectedCategory === category
+                    ? 'bg-[#565F28] text-white'
+                    : 'bg-[#F4F3EE] text-[#62635A] hover:bg-[#EAE9E2]'
+                }`}
+              >
+                {category === 'ALL' ? 'All items' : category}
+              </button>
+            ))}
+          </div>
+
+          {/* MENU GRID */}
+          {filteredMenuItems.length === 0 ? (
+            <div className="flex min-h-64 flex-col items-center justify-center text-center">
+              <SearchX size={35} className="mb-3 text-[#B5B5AC]" />
+              <p className="font-bold text-[#55564E]">
+                No menu items found
+              </p>
+              <p className="mt-1 text-xs text-[#999A91]">
+                Try another search or category
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
+              {filteredMenuItems.map((item) => (
                 <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                    selectedCategory === cat
-                      ? 'bg-olive-500 text-white shadow-xs'
-                      : 'bg-cream-100 text-stone-600 hover:bg-cream-200'
-                  }`}
+                  key={item.id}
+                  type="button"
+                  onClick={() => handleAddItem(item)}
+                  className="group overflow-hidden rounded-xl border border-[#EAE8E0] bg-white text-left transition hover:border-[#9DA47A] hover:shadow-md active:scale-[0.98]"
                 >
-                  {cat}
+                  <div className="relative aspect-[4/3] overflow-hidden bg-[#F2F1EC]">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-[#B5B5AC]">
+                        <ShoppingBag size={30} />
+                      </div>
+                    )}
+
+                    <span
+                      className={`absolute left-2 top-2 flex h-4 w-4 items-center justify-center rounded-sm border bg-white ${
+                        item.isVeg
+                          ? 'border-green-700'
+                          : 'border-red-700'
+                      }`}
+                    >
+                      <span
+                        className={`h-2 w-2 rounded-full ${
+                          item.isVeg ? 'bg-green-700' : 'bg-red-700'
+                        }`}
+                      />
+                    </span>
+
+                    <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#565F28] shadow-md transition group-hover:bg-[#565F28] group-hover:text-white">
+                      <Plus size={18} />
+                    </span>
+                  </div>
+
+                  <div className="p-3">
+                    <h3 className="line-clamp-2 min-h-9 text-xs font-bold text-[#292B23]">
+                      {item.name}
+                    </h3>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-sm font-black text-[#565F28]">
+                        {currency(item.price)}
+                      </span>
+                      <span className="text-[10px] font-medium text-[#999A91]">
+                        Add
+                      </span>
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>
-          </div>
+          )}
+        </section>
 
-          {/* Food Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
-            {filteredMenuItems.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => handleAddItem(item)}
-                className="bg-white p-3 rounded-2xl border border-cream-200 hover:border-olive-500 hover:shadow-md cursor-pointer transition-all flex flex-col justify-between select-none active:scale-98"
-              >
-                <div className="relative aspect-16/10 rounded-xl overflow-hidden mb-2 bg-cream-100">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-1.5 left-1.5">
-                    <div
-                      className={`w-3.5 h-3.5 rounded-xs border bg-white flex items-center justify-center ${
-                        item.isVeg ? 'border-emerald-600' : 'border-red-600'
-                      }`}
-                    >
-                      <div
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          item.isVeg ? 'bg-emerald-600' : 'bg-red-600'
-                        }`}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-xs text-syzlo-charcoal line-clamp-1">
-                    {item.name}
-                  </h4>
-                  <div className="mt-1 flex items-center justify-between">
-                    <span className="font-black text-xs text-syzlo-charcoal">
-                      ₹{item.price}
-                    </span>
-                    <span className="w-5 h-5 rounded-lg bg-cream-100 text-olive-800 flex items-center justify-center font-bold text-xs">
-                      +
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: POS Order Docket / Cart (5 cols) */}
-        <div className="lg:col-span-5 bg-white p-5 rounded-3xl border border-cream-200 shadow-xs flex flex-col justify-between space-y-4">
-          <div>
-            {/* Docket Header */}
-            <div className="flex items-center justify-between border-b border-cream-100 pb-3 mb-3">
+        {/* ORDER PANEL */}
+        <aside className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[#E8E6DD] bg-white shadow-sm xl:sticky xl:top-5">
+          <div className="border-b border-[#EAE8E0] p-4 sm:p-5">
+            <div className="flex items-center justify-between">
               <div>
-                <span className="font-black text-sm text-syzlo-charcoal uppercase tracking-wider block">
-                  Active Docket • {posMode}
-                </span>
-                <span className="text-xs text-stone-500">
-                  {posMode === 'DINE-IN' ? selectedTable : 'Pickup Counter'}
-                </span>
+                <h2 className="text-base font-extrabold">
+                  Current order
+                </h2>
+                <p className="mt-1 text-xs text-[#85867D]">
+                  {posMode === 'DINE-IN'
+                    ? selectedTable
+                    : 'Takeaway counter'}
+                </p>
               </div>
+
+              <div className="flex h-10 min-w-10 items-center justify-center rounded-xl bg-[#EEF0E5] px-2 text-sm font-black text-[#565F28]">
+                {itemCount}
+              </div>
+            </div>
+          </div>
+
+          {/* CUSTOMER */}
+          <div className="space-y-3 border-b border-[#EAE8E0] p-4">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#77786F]">
+              <User size={15} />
+              Customer details
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-[#66675E]">
+                Customer name
+              </label>
+              <input
+                type="text"
+                value={customerName}
+                onChange={(event) =>
+                  setCustomerName(event.target.value)
+                }
+                placeholder="Customer name"
+                className="w-full rounded-lg border border-[#E8E6DD] bg-[#FAF9F6] px-3 py-2.5 text-sm outline-none focus:border-[#565F28]"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-[#66675E]">
+                Phone number
+              </label>
+              <div className="relative">
+                <Phone
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999A91]"
+                />
+                <input
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(event) =>
+                    setCustomerPhone(event.target.value)
+                  }
+                  placeholder="10-digit phone number"
+                  className="w-full rounded-lg border border-[#E8E6DD] bg-[#FAF9F6] py-2.5 pl-9 pr-3 text-sm outline-none focus:border-[#565F28]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* CART */}
+          <div className="border-b border-[#EAE8E0] p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wide text-[#77786F]">
+                Order items
+              </h3>
 
               {posCart.length > 0 && (
                 <button
+                  type="button"
                   onClick={clearPosCart}
-                  className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1"
+                  className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Clear</span>
+                  <Trash2 size={14} />
+                  Clear
                 </button>
               )}
             </div>
 
-            {/* Customer Inputs */}
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <div>
-                <label className="text-[10px] font-bold text-stone-500 uppercase block mb-1">
-                  Customer Name
-                </label>
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-cream-300 focus:outline-hidden focus:border-olive-500 font-semibold"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-stone-500 uppercase block mb-1">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-cream-300 focus:outline-hidden focus:border-olive-500 font-semibold"
-                />
-              </div>
-            </div>
-
-            {/* Cart Items List */}
-            <div className="max-h-56 overflow-y-auto space-y-2 pr-1 border-y border-cream-100 py-3">
+            <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
               {posCart.length === 0 ? (
-                <div className="py-8 text-center text-xs text-stone-400 font-medium">
-                  Tap dishes on the left to add to POS order docket
+                <div className="flex min-h-36 flex-col items-center justify-center rounded-xl border border-dashed border-[#DAD8CF] bg-[#FAF9F6] px-4 text-center">
+                  <ShoppingBag
+                    size={28}
+                    className="mb-2 text-[#B5B5AC]"
+                  />
+                  <p className="text-sm font-semibold text-[#77786F]">
+                    Your order is empty
+                  </p>
+                  <p className="mt-1 text-xs text-[#999A91]">
+                    Select an item from the menu
+                  </p>
                 </div>
               ) : (
-                posCart.map((it) => (
+                posCart.map((item) => (
                   <div
-                    key={it.cartItemId}
-                    className="flex items-center justify-between text-xs py-1 border-b border-cream-50"
+                    key={item.cartItemId}
+                    className="flex items-center gap-3 border-b border-[#F0EFEA] pb-3 last:border-0"
                   >
-                    <div className="flex-1 pr-2">
-                      <span className="font-bold text-syzlo-charcoal block">
-                        {it.menuItem.name}
-                      </span>
-                      <span className="text-[11px] text-stone-500">₹{it.unitPrice} each</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-2 text-xs font-bold text-[#292B23]">
+                        {item.menuItem.name}
+                      </p>
+                      <p className="mt-1 text-[11px] text-[#85867D]">
+                        {currency(item.unitPrice)} each
+                      </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center bg-cream-100 rounded-md p-0.5 border border-cream-300">
-                        <button
-                          onClick={() => handleUpdateQty(it.cartItemId, it.quantity - 1)}
-                          className="w-5 h-5 rounded bg-white text-stone-800 flex items-center justify-center font-bold text-xs"
-                        >
-                          <Minus className="w-2.5 h-2.5" />
-                        </button>
-                        <span className="w-5 text-center font-bold text-xs">
-                          {it.quantity}
-                        </span>
-                        <button
-                          onClick={() => handleUpdateQty(it.cartItemId, it.quantity + 1)}
-                          className="w-5 h-5 rounded bg-olive-500 text-white flex items-center justify-center font-bold text-xs"
-                        >
-                          <Plus className="w-2.5 h-2.5" />
-                        </button>
-                      </div>
+                    <div className="flex items-center rounded-lg border border-[#E8E6DD] bg-[#FAF9F6]">
+                      <button
+                        type="button"
+                        aria-label="Decrease quantity"
+                        onClick={() =>
+                          handleUpdateQty(
+                            item.cartItemId,
+                            item.quantity - 1
+                          )
+                        }
+                        className="flex h-8 w-8 items-center justify-center text-[#565F28] hover:bg-[#EEF0E5]"
+                      >
+                        <Minus size={14} />
+                      </button>
 
-                      <span className="font-black text-syzlo-charcoal min-w-[50px] text-right">
-                        ₹{it.totalPrice}
+                      <span className="min-w-6 text-center text-xs font-bold">
+                        {item.quantity}
                       </span>
+
+                      <button
+                        type="button"
+                        aria-label="Increase quantity"
+                        onClick={() =>
+                          handleUpdateQty(
+                            item.cartItemId,
+                            item.quantity + 1
+                          )
+                        }
+                        className="flex h-8 w-8 items-center justify-center text-[#565F28] hover:bg-[#EEF0E5]"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+
+                    <div className="min-w-[65px] text-right">
+                      <p className="text-xs font-black">
+                        {currency(item.totalPrice)}
+                      </p>
                     </div>
                   </div>
                 ))
               )}
             </div>
+          </div>
 
-            {/* Discount Code */}
-            <div className="mt-3 flex items-center gap-2">
+          {/* COUPON */}
+          <div className="border-b border-[#EAE8E0] p-4">
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-[#77786F]">
+              Coupon / discount
+            </label>
+
+            <div className="relative">
               <select
                 value={appliedCouponCode}
-                onChange={(e) => setAppliedCouponCode(e.target.value)}
-                className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-cream-300 bg-white font-medium"
+                onChange={(event) =>
+                  setAppliedCouponCode(event.target.value)
+                }
+                className="w-full appearance-none rounded-lg border border-[#E8E6DD] bg-[#FAF9F6] px-3 py-2.5 pr-9 text-xs font-semibold outline-none focus:border-[#565F28]"
               >
-                <option value="">Select Staff Coupon / Discount</option>
-                {coupons.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} - {c.description}
+                <option value="">No coupon selected</option>
+                {coupons.map((coupon) => (
+                  <option key={coupon.code} value={coupon.code}>
+                    {coupon.code} — {coupon.description}
                   </option>
                 ))}
               </select>
+              <ChevronDown
+                size={15}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#77786F]"
+              />
             </div>
           </div>
 
-          {/* Payment Tender & Checkout */}
-          <div className="space-y-3 pt-2">
-            {/* Bill Calculation */}
-            <div className="space-y-1 text-xs text-stone-600 bg-cream-50 p-3 rounded-xl border border-cream-200">
-              <div className="flex justify-between">
-                <span>Item Subtotal:</span>
-                <span className="font-semibold text-syzlo-charcoal">₹{breakdown.itemTotal}</span>
-              </div>
-              {breakdown.discount > 0 && (
-                <div className="flex justify-between text-emerald-700">
-                  <span>Discount:</span>
-                  <span className="font-semibold">-₹{breakdown.discount}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span>Restaurant GST (5%):</span>
-                <span>₹{breakdown.tax}</span>
-              </div>
-              <div className="flex justify-between font-black text-base text-syzlo-charcoal pt-1.5 border-t border-cream-200">
-                <span>Grand Total:</span>
-                <span>₹{breakdown.grandTotal}</span>
-              </div>
+          {/* BILL */}
+          <div className="space-y-2 bg-[#FAF9F6] p-4">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-[#77786F]">
+              Bill summary
+            </h3>
+
+            <div className="flex justify-between text-xs text-[#66675E]">
+              <span>Item subtotal</span>
+              <span className="font-semibold text-[#292B23]">
+                {currency(breakdown.itemTotal)}
+              </span>
             </div>
 
-            {/* Payment Method Selector */}
+            {breakdown.discount > 0 && (
+              <div className="flex justify-between text-xs text-green-700">
+                <span>Discount</span>
+                <span className="font-semibold">
+                  -{currency(breakdown.discount)}
+                </span>
+              </div>
+            )}
+
+            <div className="flex justify-between text-xs text-[#66675E]">
+              <span>GST</span>
+              <span className="font-semibold text-[#292B23]">
+                {currency(breakdown.tax)}
+              </span>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between border-t border-dashed border-[#DAD8CF] pt-3">
+              <span className="text-sm font-extrabold">
+                Grand total
+              </span>
+              <span className="text-xl font-black text-[#565F28]">
+                {currency(breakdown.grandTotal)}
+              </span>
+            </div>
+          </div>
+
+          {/* PAYMENT */}
+          <div className="space-y-3 p-4">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-[#77786F]">
+              Payment method
+            </h3>
+
             <div className="grid grid-cols-2 gap-2">
               <button
-                id="pos-pay-upi"
                 type="button"
                 onClick={() => setPaymentMethod('UPI')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all border ${
+                className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-xs font-bold transition ${
                   paymentMethod === 'UPI'
-                    ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
-                    : 'bg-cream-100 text-stone-700 border-cream-300'
+                    ? 'border-[#565F28] bg-[#EEF0E5] text-[#565F28]'
+                    : 'border-[#E8E6DD] bg-white text-[#66675E] hover:bg-[#FAF9F6]'
                 }`}
               >
-                <QrCode className="w-3.5 h-3.5" />
-                <span>UPI QR TENDER</span>
+                <QrCode size={17} />
+                UPI
               </button>
 
               <button
-                id="pos-pay-cash"
                 type="button"
                 onClick={() => setPaymentMethod('CASH')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all border ${
+                className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-xs font-bold transition ${
                   paymentMethod === 'CASH'
-                    ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
-                    : 'bg-cream-100 text-stone-700 border-cream-300'
+                    ? 'border-[#565F28] bg-[#EEF0E5] text-[#565F28]'
+                    : 'border-[#E8E6DD] bg-white text-[#66675E] hover:bg-[#FAF9F6]'
                 }`}
               >
-                <Banknote className="w-3.5 h-3.5" />
-                <span>CASH TENDER</span>
+                <Banknote size={17} />
+                Cash
               </button>
             </div>
 
-            {/* Complete Order Button */}
-            <button
-              id="pos-complete-order-btn"
-              disabled={posCart.length === 0}
-              onClick={handleCompleteOrder}
-              className="w-full py-3.5 bg-olive-500 hover:bg-olive-600 disabled:bg-stone-300 text-white font-extrabold text-sm rounded-2xl shadow-md transition-all active:scale-98 flex items-center justify-center gap-2"
-            >
-              <Check className="w-4 h-4 stroke-[3]" />
-              <span>COMPLETE ORDER (GENERATE RECEIPT)</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Printable Invoice / Thermal Receipt Modal */}
-      {printedOrder && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl animate-in zoom-in-95 space-y-4">
-            <div className="flex items-center justify-between border-b border-cream-200 pb-3">
-              <span className="font-extrabold text-xs text-olive-700 uppercase tracking-wider">
-                Order Completed Successfully
-              </span>
-              <button
-                onClick={() => setPrintedOrder(null)}
-                className="w-7 h-7 rounded-full bg-cream-100 hover:bg-cream-200 flex items-center justify-center text-xs font-bold"
+            {errorMessage && (
+              <div
+                role="alert"
+                className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700"
               >
-                <X className="w-4 h-4" />
+                {errorMessage}
+              </div>
+            )}
+
+            <button
+              type="button"
+              disabled={posCart.length === 0 || isSubmitting}
+              onClick={handleCompleteOrder}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#565F28] px-4 py-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-[#454D20] disabled:cursor-not-allowed disabled:bg-[#B7B9AA]"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={18} />
+                  Complete order
+                </>
+              )}
+            </button>
+
+            <p className="text-center text-[10px] text-[#999A91]">
+              Verify the order details before completing checkout.
+            </p>
+          </div>
+        </aside>
+      </main>
+
+      {/* RECEIPT MODAL */}
+      {printedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-3 sm:p-5">
+          <div className="my-auto w-full max-w-md rounded-2xl bg-white p-4 shadow-2xl sm:p-6">
+            <div className="mb-4 flex items-center justify-between border-b border-[#EAE8E0] pb-4">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-extrabold text-[#565F28]">
+                  <CheckCircle2 size={19} />
+                  Order completed
+                </div>
+                <p className="mt-1 text-xs text-[#85867D]">
+                  Your receipt is ready to print.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setPrintedOrder(null)}
+                aria-label="Close receipt"
+                className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F2F1EC] text-[#55564E] hover:bg-[#EAE9E2]"
+              >
+                <X size={18} />
               </button>
             </div>
 
-            {/* Printable Thermal Receipt Box */}
-            <div id="printable-receipt" className="border border-dashed border-stone-400 p-4 rounded-xl bg-cream-50 font-mono text-xs space-y-2 text-stone-800">
-              <div className="text-center border-b border-dashed border-stone-300 pb-2">
-                <h3 className="font-black text-sm tracking-wider uppercase">SYZLO</h3>
-                <p className="text-[10px]">"The Bao Makers"</p>
-                <p className="text-[9px] text-stone-500">{RESTAURANT_LOCATION.address}</p>
-                <p className="text-[9px] font-bold mt-1">GSTIN: 27AABCS1234F1Z5</p>
+            {/* PRINTABLE RECEIPT */}
+            <div
+              id="printable-receipt"
+              className="mx-auto max-w-[320px] border border-dashed border-[#C8C8C0] bg-white p-4 font-mono text-xs text-black"
+            >
+              <div className="border-b border-dashed border-[#A5A59D] pb-3 text-center">
+                <h2 className="text-xl font-black tracking-widest">
+                  SYZLO
+                </h2>
+                <p className="mt-1 text-[10px]">
+                  THE BAO MAKERS
+                </p>
+                <p className="mt-2 text-[9px]">
+                  {RESTAURANT_LOCATION.address}
+                </p>
               </div>
 
-              <div className="flex justify-between text-[11px]">
-                <span>ORDER: #{printedOrder.id}</span>
-                <span>{printedOrder.orderType}</span>
-              </div>
-              <div className="flex justify-between text-[11px]">
-                <span>Date: {new Date(printedOrder.createdAt).toLocaleTimeString()}</span>
-                <span>{printedOrder.dineInTable || 'Counter'}</span>
-              </div>
-              <div className="text-[11px]">
-                Cust: {printedOrder.customerName} ({printedOrder.customerPhone})
+              <div className="space-y-1 border-b border-dashed border-[#A5A59D] py-3">
+                <div className="flex justify-between gap-2">
+                  <span>ORDER ID</span>
+                  <span className="break-all text-right font-bold">
+                    {printedOrder.id}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>DATE</span>
+                  <span>
+                    {new Date(
+                      printedOrder.createdAt
+                    ).toLocaleDateString('en-IN')}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>TIME</span>
+                  <span>
+                    {new Date(
+                      printedOrder.createdAt
+                    ).toLocaleTimeString('en-IN')}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>TYPE</span>
+                  <span>{printedOrder.orderType}</span>
+                </div>
+                {printedOrder.dineInTable && (
+                  <div className="flex justify-between">
+                    <span>TABLE</span>
+                    <span>{printedOrder.dineInTable}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="border-t border-dashed border-stone-300 pt-2 space-y-1">
-                {printedOrder.items.map((it: CartItem) => (
-                  <div key={it.cartItemId} className="flex justify-between text-[11px]">
-                    <span>
-                      {it.quantity}× {it.menuItem.name}
+              <div className="border-b border-dashed border-[#A5A59D] py-3">
+                <p className="mb-2 font-bold">CUSTOMER</p>
+                <p>{printedOrder.customerName}</p>
+                <p>{printedOrder.customerPhone}</p>
+              </div>
+
+              <div className="border-b border-dashed border-[#A5A59D] py-3">
+                <div className="mb-2 flex justify-between font-bold">
+                  <span>ITEM</span>
+                  <span>AMOUNT</span>
+                </div>
+
+                {printedOrder.items.map((item: CartItem) => (
+                  <div
+                    key={item.cartItemId}
+                    className="mb-2 flex justify-between gap-3"
+                  >
+                    <span className="flex-1">
+                      {item.menuItem.name}
+                      <span className="block text-[10px]">
+                        {item.quantity} × {currency(item.unitPrice)}
+                      </span>
                     </span>
-                    <span>₹{it.totalPrice}</span>
+                    <span className="whitespace-nowrap">
+                      {currency(item.totalPrice)}
+                    </span>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-dashed border-stone-300 pt-2 space-y-1 text-[11px]">
+              <div className="space-y-1 border-b border-dashed border-[#A5A59D] py-3">
                 <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>₹{printedOrder.itemTotal}</span>
+                  <span>Subtotal</span>
+                  <span>{currency(printedOrder.itemTotal)}</span>
                 </div>
                 {printedOrder.discount > 0 && (
                   <div className="flex justify-between">
-                    <span>Discount:</span>
-                    <span>-₹{printedOrder.discount}</span>
+                    <span>Discount</span>
+                    <span>
+                      -{currency(printedOrder.discount)}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span>GST (5%):</span>
-                  <span>₹{printedOrder.tax}</span>
+                  <span>GST</span>
+                  <span>{currency(printedOrder.tax)}</span>
                 </div>
-                <div className="flex justify-between font-black text-xs pt-1 border-t border-stone-400">
-                  <span>TOTAL:</span>
-                  <span>₹{printedOrder.grandTotal}</span>
-                </div>
-                <div className="flex justify-between text-[10px] text-stone-500">
-                  <span>Payment: {printedOrder.paymentMethod}</span>
-                  <span>Status: PAID</span>
+                <div className="flex justify-between pt-2 text-sm font-black">
+                  <span>TOTAL</span>
+                  <span>{currency(printedOrder.grandTotal)}</span>
                 </div>
               </div>
 
-              <div className="text-center text-[9px] pt-2 border-t border-dashed border-stone-300">
-                Thank you for dining with SYZLO!
+              <div className="border-b border-dashed border-[#A5A59D] py-3">
+                <div className="flex justify-between">
+                  <span>PAYMENT</span>
+                  <span>{printedOrder.paymentMethod}</span>
+                </div>
+                <div className="mt-1 flex justify-between">
+                  <span>STATUS</span>
+                  <span>{printedOrder.paymentStatus}</span>
+                </div>
+              </div>
+
+              <div className="pt-3 text-center">
+                <p className="font-bold">Thank you for choosing SYZLO!</p>
+                <p className="mt-1 text-[10px]">
+                  Please visit us again.
+                </p>
               </div>
             </div>
 
-            {/* Modal Buttons */}
-            <div className="flex gap-2">
+            <div className="mt-5 flex gap-2">
               <button
+                type="button"
                 onClick={handlePrint}
-                className="flex-1 py-2.5 bg-olive-500 hover:bg-olive-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#565F28] px-4 py-3 text-sm font-bold text-white hover:bg-[#454D20]"
               >
-                <Printer className="w-4 h-4" />
-                <span>PRINT INVOICE</span>
+                <Printer size={17} />
+                Print receipt
               </button>
+
               <button
-                onClick={() => setPrintedOrder(null)}
-                className="px-4 py-2.5 bg-cream-100 hover:bg-cream-200 text-stone-700 font-bold text-xs rounded-xl"
+                type="button"
+                onClick={startNewOrder}
+                className="rounded-xl border border-[#E8E6DD] bg-white px-4 py-3 text-sm font-bold text-[#55564E] hover:bg-[#F8F7F3]"
               >
-                Done
+                New order
               </button>
             </div>
           </div>

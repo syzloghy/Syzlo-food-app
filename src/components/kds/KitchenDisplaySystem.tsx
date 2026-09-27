@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { OrderStatus } from '../../types';
 import {
@@ -25,6 +25,15 @@ export const KitchenDisplaySystem: React.FC = () => {
   } = useApp();
 
   const [filterType, setFilterType] = useState<'ALL' | 'DELIVERY' | 'PICKUP' | 'DINE-IN'>('ALL');
+  const [, setCurrentTime] = useState(Date.now());
+
+useEffect(() => {
+  const timer = window.setInterval(() => {
+    setCurrentTime(Date.now());
+  }, 60000);
+
+  return () => window.clearInterval(timer);
+}, []);
 
   // Filter orders relevant to kitchen
   const activeOrders = orders.filter((o) => {

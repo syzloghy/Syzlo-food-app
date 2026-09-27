@@ -506,11 +506,11 @@ return (
 
       {/* Order Detail Modal with Full WhatsApp Dispatch and Location Info */}
       {selectedOrderForModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto animate-scaleUp">
-            <div className="flex items-center justify-between border-b border-cream-200 pb-3">
+        <div className="fixed inset-0 z-50 bg-[#24251F]/60 backdrop-blur-sm flex items-center justify-center p-4">
+         <div className="bg-[#FFFEFC] rounded-2xl border border-[#E4DDD0] max-w-lg w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto animate-scaleUp">
+           <div className="flex items-center justify-between border-b border-[#EAE4D9] pb-4">
               <div>
-                <span className="font-mono font-black text-sm text-olive-800">
+                <span className="font-mono font-black text-sm text-[#565F28]">
                   Order #{selectedOrderForModal.id}
                 </span>
                 <span className="text-xs text-stone-500 block">
@@ -527,7 +527,7 @@ return (
 
             {/* Rider WhatsApp Dispatch Card */}
             {selectedOrderForModal.orderType === 'DELIVERY' && (
-              <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2">
+              <div className="p-4 rounded-xl bg-[#F5F5EB] border border-[#E4E6D4] space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
                     <Bike className="w-4 h-4 text-emerald-700" />
@@ -635,7 +635,7 @@ return (
                   {selectedOrderForModal.items.map((it: CartItem) => (
                     <div
                       key={it.cartItemId}
-                      className="p-2 bg-cream-50 rounded-xl flex justify-between items-center"
+                      className="p-3 bg-[#F8F6F1] border border-[#EEE9DF] rounded-lg flex justify-between items-center"
                     >
                       <div>
                         <span className="font-bold text-syzlo-charcoal">
@@ -654,7 +654,7 @@ return (
               </div>
 
               {/* Breakdown */}
-              <div className="p-3 rounded-xl bg-cream-50 space-y-1 text-[11px]">
+             <div className="p-4 rounded-xl bg-[#F7F5F0] border border-[#EAE4D9] space-y-2 text-[11px]">
                 <div className="flex justify-between text-stone-500">
                   <span>Item Total:</span>
                   <span>₹{selectedOrderForModal.itemTotal}</span>
@@ -690,7 +690,7 @@ return (
 
             <button
               onClick={() => setSelectedOrderForModal(null)}
-              className="w-full py-2.5 bg-olive-600 hover:bg-olive-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+              className="w-8 h-8 rounded-lg bg-[#F3F0E8] hover:bg-[#E9E4D8] flex items-center justify-center text-sm text-[#56534C] transition-colors"
             >
               Close
             </button>

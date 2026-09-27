@@ -268,9 +268,9 @@ return (
 
     {/* Orders Table Container */}
     
-    <div className="bg-white rounded-3xl border border-cream-300 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-2xl border border-[#E4DDD0] shadow-[0_2px_12px_rgba(60,50,30,0.03)] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+  <table className="w-full min-w-[1050px] text-left text-xs">
             <thead className="bg-cream-50 border-b border-cream-200 text-stone-500 uppercase tracking-wider text-[11px] font-extrabold">
               <tr>
                 <th className="py-3.5 px-4">Order ID & Date</th>
@@ -282,12 +282,26 @@ return (
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-cream-100 font-medium text-stone-700">
+            <tbody className="divide-y divide-[#F0EBE3] font-medium text-[#56534C]">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-stone-400">
-                    No orders match your filter criteria.
-                  </td>
+                 <td colSpan={7} className="py-16 text-center">
+  <div className="flex flex-col items-center justify-center">
+
+    <div className="w-12 h-12 rounded-xl bg-[#F5F2EA] flex items-center justify-center">
+      <ShoppingBag className="w-5 h-5 text-[#B8B09F]" />
+    </div>
+
+    <p className="mt-3 text-sm font-bold text-[#45463E]">
+      No orders yet
+    </p>
+
+    <p className="mt-1 text-[11px] text-[#969188]">
+      New orders will appear here when customers place them.
+    </p>
+
+  </div>
+</td>
                 </tr>
               ) : (
                 filteredOrders.map((ord) => {
@@ -295,7 +309,8 @@ return (
                   const assignedRider = riders.find((r) => r.id === ord.riderId);
 
                   return (
-                    <tr key={ord.id} className="hover:bg-cream-50/50 transition-colors">
+                    <tr key={ord.id}
+  className="hover:bg-[#FAF9F5] transition-colors">
                       {/* ID */}
                       <td className="py-3.5 px-4">
                         <span className="font-mono font-black text-syzlo-charcoal block">

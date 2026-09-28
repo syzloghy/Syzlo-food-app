@@ -17,6 +17,9 @@ import {
   Home,
   Briefcase,
   Navigation,
+  Headphones,
+  MessageCircle,
+  ClipboardList,
 } from 'lucide-react';
 import { OpenStreetMap } from '../common/OpenStreetMap';
 
@@ -57,6 +60,9 @@ export const CustomerProfile: React.FC = () => {
   const favoriteItems = menuItems.filter((m) =>
     customerProfile.savedFavorites.includes(m.id)
   );
+  const totalSavings = orders.reduce((sum, order) => sum + (Number(order.discount) || 0), 0);
+  const supportWhatsApp = 'https://wa.me/918822803083?text=' + encodeURIComponent('Hello SYZLO Support, I need help with my order/account.');
+  const supportEmail = 'mailto:contactsyzlo@gmail.com?subject=' + encodeURIComponent('SYZLO Customer Support');
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -257,10 +263,10 @@ export const CustomerProfile: React.FC = () => {
 
             <div className="bg-cream-100/70 p-3 rounded-2xl border border-cream-200 text-center">
               <span className="text-[10px] font-black text-stone-400 uppercase tracking-wider block">
-                Total Spent
+                Total Saved
               </span>
               <span className="text-lg font-black text-syzlo-charcoal">
-                ₹{orders.reduce((sum, o) => sum + o.grandTotal, 0).toFixed(0)}
+                ₹{totalSavings.toFixed(0)}
               </span>
             </div>
 
@@ -360,6 +366,55 @@ export const CustomerProfile: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* My Orders */}
+        <button
+          type="button"
+          onClick={() => setCustomerScreen('orders')}
+          className="w-full bg-white p-5 rounded-3xl border border-cream-300 shadow-xs flex items-center justify-between gap-4 text-left hover:border-olive-400 transition-colors"
+        >
+          <span className="flex items-center gap-3">
+            <span className="w-10 h-10 rounded-xl bg-olive-100 text-olive-700 flex items-center justify-center">
+              <ClipboardList className="w-5 h-5" />
+            </span>
+            <span>
+              <span className="block font-black text-base text-syzlo-charcoal">My Orders</span>
+              <span className="block text-xs text-stone-500">View your order history and status</span>
+            </span>
+          </span>
+          <span className="text-stone-400 text-xl" aria-hidden="true">›</span>
+        </button>
+
+        {/* Help & Support */}
+        <section className="bg-white p-6 rounded-3xl border border-cream-300 shadow-xs space-y-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-olive-100 text-olive-700 flex items-center justify-center">
+              <Headphones className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-black text-base text-syzlo-charcoal">Help &amp; Support</h3>
+              <p className="text-[11px] text-stone-500">Contact SYZLO for order or account assistance</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a href={supportWhatsApp} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 p-4 rounded-2xl border border-cream-200 bg-[#FAF6EF]/60 hover:bg-cream-100 transition-colors">
+              <MessageCircle className="w-5 h-5 text-olive-700" />
+              <span className="min-w-0">
+                <span className="block text-xs font-black text-syzlo-charcoal">WhatsApp Support</span>
+                <span className="block text-xs text-stone-500">+91 88228 03083</span>
+              </span>
+            </a>
+            <a href={supportEmail}
+              className="flex items-center gap-3 p-4 rounded-2xl border border-cream-200 bg-[#FAF6EF]/60 hover:bg-cream-100 transition-colors">
+              <Mail className="w-5 h-5 text-olive-700" />
+              <span className="min-w-0">
+                <span className="block text-xs font-black text-syzlo-charcoal">Email Support</span>
+                <span className="block text-xs text-stone-500 break-all">contactsyzlo@gmail.com</span>
+              </span>
+            </a>
+          </div>
+        </section>
 
         {/* Favorite Dishes */}
         {favoriteItems.length > 0 && (

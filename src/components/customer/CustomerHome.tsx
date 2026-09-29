@@ -272,7 +272,8 @@ const handleCategoryClick = (category: FoodCategory) => {
         Ordering unavailable
       </span>
     )}
-</div>
+</div></div>
+      
 
       {/* 2. LANDSCAPE HERO BANNER FOR MOBILE & DESKTOP (Matches reference image syz.png) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-2">

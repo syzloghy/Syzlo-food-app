@@ -95,65 +95,69 @@ export const OrderModeSettings: React.FC = () => {
 
       <div className="space-y-3">
         {options.map((option) => {
-          const Icon = option.icon;
-          const enabled = modes[option.id];
+  const Icon = option.icon;
+  const enabled = modes[option.id];
 
-          return (
-            <div
-              key={option.id}
-              className="bg-white rounded-2xl border border-[#E5DED1] p-5 flex items-center gap-4"
-            >
-              <div className="w-11 h-11 rounded-xl bg-[#F5F1E8] flex items-center justify-center">
-                <Icon className="w-5 h-5 text-[#565F28]" />
-              </div>
+  return (
+    <div
+      key={option.id}
+      className="bg-white rounded-2xl border border-[#E5DED1] p-5 flex items-center gap-4 transition-all hover:border-[#565F28]/40"
+    >
+      <div className="w-12 h-12 rounded-xl bg-[#F3F1E8] flex items-center justify-center shrink-0">
+        <Icon className="w-5 h-5 text-[#565F28]" />
+      </div>
 
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-[#20221A]">
-                  {option.title}
-                </h3>
-                <p className="text-xs text-stone-500 mt-1">
-                  {option.description}
-                </p>
-                <p
-                  className={`text-xs font-bold mt-2 ${
-                    enabled ? 'text-emerald-700' : 'text-red-600'
-                  }`}
-                >
-                  {enabled ? 'Enabled' : 'Disabled'}
-                </p>
-              </div>
+      <div className="flex-1 min-w-0">
+        <h3 className="text-sm font-bold text-[#292B23]">
+          {option.title}
+        </h3>
 
-              <button
-                type="button"
-                role="switch"
-                aria-checked={enabled}
-                aria-label={`Turn ${option.title} ${
-                  enabled ? 'off' : 'on'
-                }`}
-                onClick={() => toggleMode(option.id)}
-                className={`relative w-12 h-7 rounded-full transition-colors ${
-                  enabled ? 'bg-[#565F28]' : 'bg-stone-300'
-                }`}
-              >
-                <span
-                  className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                    enabled ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-          );
-        })}
+        <p className="text-xs text-stone-500 mt-1">
+          {option.description}
+        </p>
+
+        <span
+          className={`inline-flex items-center gap-1.5 mt-2 text-[11px] font-bold ${
+            enabled ? 'text-[#565F28]' : 'text-stone-500'
+          }`}
+        >
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              enabled ? 'bg-[#565F28]' : 'bg-stone-400'
+            }`}
+          />
+          {enabled ? 'Accepting orders' : 'Not accepting orders'}
+        </span>
       </div>
 
       <button
         type="button"
-        onClick={handleSave}
-        className="w-full sm:w-auto px-6 py-3 bg-[#565F28] hover:bg-[#454D20] text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+        role="switch"
+        aria-checked={enabled}
+        aria-label={`${option.title} ${enabled ? 'enabled' : 'disabled'}`}
+        onClick={() => toggleMode(option.id)}
+        className={`relative w-[58px] h-[32px] rounded-full shrink-0 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-[#565F28]/20 ${
+          enabled ? 'bg-[#565F28]' : 'bg-stone-300'
+        }`}
       >
-        <Save className="w-4 h-4" />
-        Save Settings
+        <span
+          className={`absolute top-[4px] left-[4px] w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-200 ${
+            enabled ? 'translate-x-[26px]' : 'translate-x-0'
+          }`}
+        />
       </button>
+    </div>
+  );
+})}
+
+     <button
+  type="button"
+  onClick={handleSave}
+  className="w-full sm:w-auto min-w-[180px] px-6 py-3.5 bg-[#565F28] hover:bg-[#454D20] active:scale-[0.98] text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+>
+  <Save className="w-4 h-4" />
+  Save Changes
+</button>
     </div>
   );
 };

@@ -111,7 +111,7 @@ export const Navbar: React.FC = () => {
               </span>
 
               <span className="text-[9px] sm:text-[10px] font-bold text-stone-500 tracking-wider uppercase mt-0.5">
-                GOOD FOOD. EVERYDAY
+                THE BAO MAKERS'
               </span>
             </div>
 

@@ -251,10 +251,7 @@ const handleCategoryClick = (category: FoodCategory) => {
   {orderModes.dineIn && (
     <button
       id="order-mode-dine-in"
-      onClick={() => {
-        setOrderType('DINE-IN');
-        setCustomerScreen('checkout');
-      }}
+      onClick={() => setOrderType('DINE-IN')}
       className={`px-2.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
         orderType === 'DINE-IN'
           ? 'bg-[#565F28] text-white shadow-xs'

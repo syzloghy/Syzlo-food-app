@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { orderService } from '../../services/orderService';
 import { locationService } from '../../services/locationService';
@@ -18,7 +18,28 @@ import {
   CreditCard,
   Building,
 } from 'lucide-react';
+const ORDER_MODES_KEY = 'syzlo_order_modes';
 
+type OrderModes = {
+  delivery: boolean;
+  takeaway: boolean;
+  dineIn: boolean;
+};
+
+const getOrderModes = (): OrderModes => {
+  const defaults: OrderModes = {
+    delivery: true,
+    takeaway: true,
+    dineIn: true,
+  };
+
+  try {
+    const saved = localStorage.getItem(ORDER_MODES_KEY);
+    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+  } catch {
+    return defaults;
+  }
+};
 export const CheckoutPage: React.FC = () => {
   const {
     cart,
@@ -32,7 +53,28 @@ export const CheckoutPage: React.FC = () => {
     osmConfig,
     brandConfig,
   } = useApp();
+const [orderModes, setOrderModes] = useState<OrderModes>(
+  getOrderModes
+);
 
+useEffect(() => {
+  const refreshModes = () => {
+    setOrderModes(getOrderModes());
+  };
+
+  window.addEventListener('storage', refreshModes);
+  window.addEventListener('syzlo-order-modes-updated', refreshModes);
+
+  refreshModes();
+
+  return () => {
+    window.removeEventListener('storage', refreshModes);
+    window.removeEventListener(
+      'syzlo-order-modes-updated',
+      refreshModes
+    );
+  };
+}, []);
   // Form Fields
   const [customerName, setCustomerName] = useState(customerProfile.name);
   const [customerPhone, setCustomerPhone] = useState(customerProfile.phone);
@@ -87,7 +129,14 @@ const [pickupMode, setPickupMode] = useState<'TAKEAWAY' | 'DINE-IN' | ''>('');
       setCoords({ lat: addr.latitude, lng: addr.longitude });
     }
   };
-
+if (
+  (orderType === 'DELIVERY' && !orderModes.delivery) ||
+  (orderType === 'PICKUP' && !orderModes.takeaway) ||
+  (orderType === 'DINE-IN' && !orderModes.dineIn)
+) {
+  setGatewayMessage('This order type is currently unavailable.');
+  return;
+}
   const handlePlaceOrder = () => {
   if (orderType !== 'DELIVERY' && !pickupMode) {
     alert('Please select Takeaway or Dine-in before placing your order.');
@@ -204,98 +253,58 @@ const [pickupMode, setPickupMode] = useState<'TAKEAWAY' | 'DINE-IN' | ''>('');
               </div>
             </div>
 
-           {/* Step 2: Fulfillment Mode */}
-<div className="bg-white p-5 rounded-2xl border border-cream-200 shadow-xs space-y-4">
+          {/* Step 2: Fulfillment Mode */}
+<div className="bg-white p-5 rounded-2xl border border-cream-200 shadow-xs space-y-3">
   <span className="text-xs font-extrabold text-olive-700 uppercase tracking-wider block">
     2. Order Fulfillment Mode
   </span>
 
-  <div className="grid grid-cols-2 gap-2">
-    {/* Delivery */}
-    <button
-      type="button"
-      onClick={() => {
-        setOrderType('DELIVERY');
-        setPickupMode('');
-      }}
-      className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 text-xs font-bold transition-all ${
-        orderType === 'DELIVERY'
-          ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
-          : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
-      }`}
-    >
-      <Bike className="w-4 h-4" />
-      <span>Delivery</span>
-    </button>
-
-    {/* Takeaway / Dine-in */}
-    <button
-      type="button"
-      onClick={() => {
-        setOrderType('PICKUP');
-        setPickupMode('');
-      }}
-      className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 text-xs font-bold transition-all ${
-        orderType === 'PICKUP' || orderType === 'DINE-IN'
-          ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
-          : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
-      }`}
-    >
-      <ShoppingBag className="w-4 h-4" />
-      <span>Takeaway / Dine-in</span>
-    </button>
+  <div className="grid grid-cols-3 gap-2">
+    {[
+      {
+        id: 'DELIVERY',
+        label: 'Delivery',
+        enabled: orderModes.delivery,
+        icon: <Bike className="w-4 h-4" />,
+      },
+      {
+        id: 'PICKUP',
+        label: 'Takeaway',
+        enabled: orderModes.takeaway,
+        icon: <ShoppingBag className="w-4 h-4" />,
+      },
+      {
+        id: 'DINE-IN',
+        label: 'Dine-in',
+        enabled: orderModes.dineIn,
+        icon: <Utensils className="w-4 h-4" />,
+      },
+    ]
+      .filter((mode) => mode.enabled)
+      .map((mode) => (
+        <button
+          key={mode.id}
+          type="button"
+          onClick={() => setOrderType(mode.id as OrderType)}
+          className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 text-xs font-bold transition-all ${
+            orderType === mode.id
+              ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
+              : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
+          }`}
+        >
+          {mode.icon}
+          <span>{mode.label}</span>
+        </button>
+      ))}
   </div>
 
-  {/* Compulsory Takeaway / Dine-in Selection */}
-  {(orderType === 'PICKUP' || orderType === 'DINE-IN') && (
-    <div className="pt-2 border-t border-cream-200 space-y-2">
-      <span className="text-[11px] font-extrabold text-stone-600 uppercase tracking-wider block">
-        Choose Order Type *
-      </span>
-
-      <div className="grid grid-cols-2 gap-2">
-        {/* Takeaway */}
-        <button
-          type="button"
-          onClick={() => {
-            setPickupMode('TAKEAWAY');
-            setOrderType('PICKUP');
-          }}
-          className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all ${
-            pickupMode === 'TAKEAWAY'
-              ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
-              : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
-          }`}
-        >
-          <ShoppingBag className="w-4 h-4" />
-          <span>Takeaway</span>
-        </button>
-
-        {/* Dine-in */}
-        <button
-          type="button"
-          onClick={() => {
-            setPickupMode('DINE-IN');
-            setOrderType('DINE-IN');
-          }}
-          className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all ${
-            pickupMode === 'DINE-IN'
-              ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
-              : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
-          }`}
-        >
-          <Utensils className="w-4 h-4" />
-          <span>Dine-in</span>
-        </button>
-      </div>
-
-      {!pickupMode && (
-        <p className="text-[11px] font-semibold text-red-600">
-          Please select Takeaway or Dine-in to continue.
-        </p>
-      )}
-    </div>
-  )}
+  {!orderModes.delivery &&
+    !orderModes.takeaway &&
+    !orderModes.dineIn && (
+      <p className="text-sm text-red-600 font-bold">
+        Ordering is currently unavailable.
+      </p>
+    )}
 </div>
             {/* Step 3: Address / Table according to mode */}
             {orderType === 'DELIVERY' && (

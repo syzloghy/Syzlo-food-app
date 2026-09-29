@@ -18,28 +18,32 @@ import {
   CreditCard,
   Building,
 } from 'lucide-react';
-const ORDER_MODES_KEY = 'syzlo_order_modes';
 
-type OrderModes = {
-  delivery: boolean;
-  takeaway: boolean;
-  dineIn: boolean;
-};
-
-const getOrderModes = (): OrderModes => {
-  const defaults: OrderModes = {
-    delivery: true,
-    takeaway: true,
-    dineIn: true,
-  };
-
+const getOrderModes = () => {
   try {
-    const saved = localStorage.getItem(ORDER_MODES_KEY);
-    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+    const saved = localStorage.getItem('syzlo_order_modes');
+
+    return saved
+      ? {
+          delivery: true,
+          takeaway: true,
+          dineIn: true,
+          ...JSON.parse(saved),
+        }
+      : {
+          delivery: true,
+          takeaway: true,
+          dineIn: true,
+        };
   } catch {
-    return defaults;
+    return {
+      delivery: true,
+      takeaway: true,
+      dineIn: true,
+    };
   }
 };
+
 export const CheckoutPage: React.FC = () => {
   const {
     cart,
@@ -264,47 +268,45 @@ if (
       {
         id: 'DELIVERY',
         label: 'Delivery',
-        enabled: orderModes.delivery,
+        enabled: getOrderModes().delivery,
         icon: <Bike className="w-4 h-4" />,
       },
       {
         id: 'PICKUP',
         label: 'Takeaway',
-        enabled: orderModes.takeaway,
+        enabled: getOrderModes().takeaway,
         icon: <ShoppingBag className="w-4 h-4" />,
       },
       {
         id: 'DINE-IN',
-        label: 'Dine-in',
-        enabled: orderModes.dineIn,
+        label: 'Dine-In',
+        enabled: getOrderModes().dineIn,
         icon: <Utensils className="w-4 h-4" />,
       },
     ]
       .filter((mode) => mode.enabled)
-      .map((mode) => (
+      .map((m) => (
         <button
-          key={mode.id}
+          key={m.id}
           type="button"
-          onClick={() => setOrderType(mode.id as OrderType)}
+          onClick={() => setOrderType(m.id as OrderType)}
           className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 text-xs font-bold transition-all ${
-            orderType === mode.id
+            orderType === m.id
               ? 'bg-olive-500 text-white border-olive-600 shadow-xs'
               : 'bg-white border-cream-300 text-stone-700 hover:bg-cream-100'
           }`}
         >
-          {mode.icon}
-          <span>{mode.label}</span>
+          {m.icon}
+          <span>{m.label}</span>
         </button>
       ))}
   </div>
 
-  {!orderModes.delivery &&
-    !orderModes.takeaway &&
-    !orderModes.dineIn && (
-      <p className="text-sm text-red-600 font-bold">
-        Ordering is currently unavailable.
-      </p>
-    )}
+  {!Object.values(getOrderModes()).some(Boolean) && (
+    <p className="text-sm text-red-600 font-semibold">
+      Ordering is currently unavailable.
+    </p>
+  )}
 </div>
             {/* Step 3: Address / Table according to mode */}
             {orderType === 'DELIVERY' && (

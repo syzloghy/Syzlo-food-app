@@ -1,4 +1,32 @@
 import React, { useState, useEffect } from 'react';
+const ORDER_MODES_KEY = 'syzlo_order_modes';
+
+type OrderModes = {
+  delivery: boolean;
+  takeaway: boolean;
+  dineIn: boolean;
+};
+
+const DEFAULT_ORDER_MODES: OrderModes = {
+  delivery: true,
+  takeaway: true,
+  dineIn: true,
+};
+
+const getOrderModes = (): OrderModes => {
+  try {
+    const saved = localStorage.getItem(ORDER_MODES_KEY);
+
+    if (!saved) return DEFAULT_ORDER_MODES;
+
+    return {
+      ...DEFAULT_ORDER_MODES,
+      ...JSON.parse(saved),
+    };
+  } catch {
+    return DEFAULT_ORDER_MODES;
+  }
+};
 import { useApp } from '../../context/AppContext';
 import { FoodCategory, HeroBanner } from '../../types';
 import { FoodCard } from './FoodCard';
@@ -46,6 +74,59 @@ export const CustomerHome: React.FC = () => {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [selectedCity, setSelectedCity] = useState('Guwahati');
+  const [orderModes, setOrderModes] = useState<OrderModes>(
+  getOrderModes
+);
+
+useEffect(() => {
+  const refreshOrderModes = () => {
+    setOrderModes(getOrderModes());
+  };
+
+  window.addEventListener(
+    'syzlo-order-modes-updated',
+    refreshOrderModes
+  );
+
+  window.addEventListener('storage', refreshOrderModes);
+
+  refreshOrderModes();
+
+  return () => {
+    window.removeEventListener(
+      'syzlo-order-modes-updated',
+      refreshOrderModes
+    );
+
+    window.removeEventListener('storage', refreshOrderModes);
+  };
+}, []);
+
+useEffect(() => {
+  if (orderType === 'DELIVERY' && !orderModes.delivery) {
+    if (orderModes.takeaway) {
+      setOrderType('PICKUP');
+    } else if (orderModes.dineIn) {
+      setOrderType('DINE-IN');
+    }
+  }
+
+  if (orderType === 'PICKUP' && !orderModes.takeaway) {
+    if (orderModes.delivery) {
+      setOrderType('DELIVERY');
+    } else if (orderModes.dineIn) {
+      setOrderType('DINE-IN');
+    }
+  }
+
+  if (orderType === 'DINE-IN' && !orderModes.dineIn) {
+    if (orderModes.takeaway) {
+      setOrderType('PICKUP');
+    } else if (orderModes.delivery) {
+      setOrderType('DELIVERY');
+    }
+  }
+}, [orderModes, orderType, setOrderType]);
 
   // Active banners from AppContext
   const activeBanners = heroBanners.filter((b) => b.isActive !== false);
@@ -136,37 +217,62 @@ const handleCategoryClick = (category: FoodCategory) => {
           </div>
         </button>
 
-{/* Right: Mode Toggle */}
-<div className="flex items-center p-0.5 sm:p-1 bg-[#EDE6D6] rounded-full border border-cream-300/60 shrink-0">
-  {/* Delivery */}
-  <button
-    id="order-mode-delivery"
-    onClick={() => setOrderType('DELIVERY')}
-    className={`px-2.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
-      orderType === 'DELIVERY'
-        ? 'bg-[#565F28] text-white shadow-xs'
-        : 'text-stone-700 hover:text-stone-900'
-    }`}
-  >
-    Delivery
-  </button>
+{/* Customer Order Mode Selection */}
+<div className="flex items-center gap-1 p-1 bg-[#EDE6D6] rounded-full border border-cream-300/60 shrink-0">
 
-  {/* Takeaway / Dine-in */}
-  <button
-    id="order-mode-takeaway-dinein"
-    onClick={() => {
-      setOrderType('PICKUP');
-    }}
-    className={`px-2.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
-      orderType === 'PICKUP' || orderType === 'DINE-IN'
-        ? 'bg-[#565F28] text-white shadow-xs'
-        : 'text-stone-700 hover:text-stone-900'
-    }`}
-  >
-    <span className="sm:hidden">Takeaway / Dine-in</span>
-    <span className="hidden sm:inline">Takeaway / Dine-in</span>
-  </button>
-</div></div>
+  {orderModes.delivery && (
+    <button
+      id="order-mode-delivery"
+      onClick={() => setOrderType('DELIVERY')}
+      className={`px-2.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+        orderType === 'DELIVERY'
+          ? 'bg-[#565F28] text-white shadow-xs'
+          : 'text-stone-700 hover:text-stone-900'
+      }`}
+    >
+      Delivery
+    </button>
+  )}
+
+  {orderModes.takeaway && (
+    <button
+      id="order-mode-takeaway"
+      onClick={() => setOrderType('PICKUP')}
+      className={`px-2.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+        orderType === 'PICKUP'
+          ? 'bg-[#565F28] text-white shadow-xs'
+          : 'text-stone-700 hover:text-stone-900'
+      }`}
+    >
+      Takeaway
+    </button>
+  )}
+
+  {orderModes.dineIn && (
+    <button
+      id="order-mode-dine-in"
+      onClick={() => {
+        setOrderType('DINE-IN');
+        setCustomerScreen('checkout');
+      }}
+      className={`px-2.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+        orderType === 'DINE-IN'
+          ? 'bg-[#565F28] text-white shadow-xs'
+          : 'text-stone-700 hover:text-stone-900'
+      }`}
+    >
+      Dine-in
+    </button>
+  )}
+
+  {!orderModes.delivery &&
+    !orderModes.takeaway &&
+    !orderModes.dineIn && (
+      <span className="px-3 py-1.5 text-xs font-bold text-stone-600">
+        Ordering unavailable
+      </span>
+    )}
+</div>
 
       {/* 2. LANDSCAPE HERO BANNER FOR MOBILE & DESKTOP (Matches reference image syz.png) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-2">

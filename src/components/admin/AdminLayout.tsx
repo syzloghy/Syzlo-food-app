@@ -12,6 +12,7 @@ import { OsmLocationSettings } from './OsmLocationSettings';
 import { BrandLogoSettings } from './BrandLogoSettings';
 import { StaffRiderManagement } from './StaffRiderManagement';
 import { ReportsAnalytics } from './ReportsAnalytics';
+import { OrderModeSettings } from './OrderModeSettings';
 
 import {
   LayoutDashboard,
@@ -312,18 +313,8 @@ const newOrderCount = orders.filter(
       case 'brand':
         return <BrandLogoSettings />;
 
-      case 'settings':
-        return (
-          <div className="bg-white rounded-2xl border border-[#E5DED1] p-8 shadow-[0_2px_12px_rgba(60,50,30,0.03)]">
-            <h2 className="text-xl font-black tracking-tight">
-              Settings
-            </h2>
-
-            <p className="mt-2 text-sm text-stone-500">
-              Business settings will be connected here.
-            </p>
-          </div>
-        );
+     case 'settings':
+  return <OrderModeSettings />;
 
       case 'business':
         return (
